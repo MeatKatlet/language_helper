@@ -1,6 +1,6 @@
 from io import StringIO
 import re
-
+import spacy
 test = {
 "test1" : '''151 "relative" mueller_base "Mueller English-Russian Dictionary (base)": text follows
 relative
@@ -349,13 +349,51 @@ to
 }
 
 class Parser():
-
+    poses = {
+        "ADJ": "_a",
+        # "ADP" : "_prep", # adposition in, to, during
+        "ADV": "_adv",
+        # "AUX" : "_v",#? вспомогательный глагол
+        # "CONJ" : {"_cj","_conj"},#союз, pronoun conjunctive - союзное местоимение - and, or, but
+        # "CCONJ" : {"_cj","_conj"}, # the same?
+        # "DET" : "",#a, an, the
+        "INTJ": "_int",  # interjection - междометие
+        "NOUN": "_n",
+        # "NUM" : "_n-card", #1, 2017, one, seventy-seven, IV, MMXIV
+        # "PART" : "",#particle	’s, not,
+        "PRON": {"_pron":None, "_pers":None, "_demonstr":None, "_emph":None, "_indef":None, "_inter":None, "_poss":None, "_recipr":None, "_refl":None, "_rel":None},
+    # pronoun - местоимение/личное местоимение I, you, he, she, myself, themselves, somebody
+        # "PROPN" : "",# proper noun - Mary, John, London, NATO, HBO: dictionary of places or Names or Abbrevations
+        # "PUNCT" : "",# ., (, ), ?
+        "SCONJ": "_cj",  # subordinating conjunction	if, while, that
+        # "SYM" : "", #symbol	$, %, §, ©, +, −, ×, ÷, =, :), 😝
+        "VERB": {"_v":None, "_inf":None}
+        # "X" : "", #other	sfpksdpsxmsa
+        # "SPACE" : "" #space
+    }
     def __init__(self):
 
         self.translation = ""
         self.multiline_begins = False
         self.pos_finded_above = False
         self.breacket_open_on_prev_line = False
+
+
+        """
+        poses = {
+            "spacy_pos1" : "_n",
+            "spacy_pos2" : "_a",
+            "spacy_pos3" : "_v",
+            "spacy_pos4" : "_p",
+            "spacy_pos5" : "_adv",
+            "spacy_pos6" : "_prep",
+            "spacy_pos7" : "_pron",
+            "spacy_pos8" : "_pers",
+            "spacy_pos9" : "_cj",
+            "spacy_pos10" : "_int"
+
+        }
+        """
 
     def handle_result(self,text):
 
@@ -374,6 +412,7 @@ class Parser():
         return False
 
     def remove_round_bracket_content(self,line):
+        #TODO а) in the middle
         r = ""
         search_from = 0
         if self.breacket_open_on_prev_line == True:#if on previous line breacket was open!
@@ -486,20 +525,9 @@ class Parser():
         #-a-  суффикс/префикс
 
         #translation [gfgf]
-        poses = {
-            "spacy_pos1" : "_n",
-            "spacy_pos2" : "_a",
-            "spacy_pos3" : "_v",
-            "spacy_pos4" : "_p",
-            "spacy_pos5" : "_adv",
-            "spacy_pos6" : "_prep",
-            "spacy_pos7" : "_pron",
-            "spacy_pos8" : "_pers",
-            "spacy_pos9" : "_cj",
-            "spacy_pos10" : "_int"
 
-        }
-        if spacy_pos not in poses:
+
+        if spacy_pos not in self.poses:
             return "spacy_pos no in parser list"
 
 
@@ -522,7 +550,7 @@ class Parser():
                     first_line = 1
                     continue
                 elif line[:3]=="250":
-                    if mode==1:
+                    if mode==1 and result != "":
                         #result - word to search in one another request to dictionary
                         a = 1
                     break
@@ -547,7 +575,8 @@ class Parser():
                             founded_pos_key = string[pos_start:pos_end]
 
 
-                            if founded_pos_key==poses[spacy_pos]:
+                            if (type(self.poses[spacy_pos]) is dict and founded_pos_key in self.poses[spacy_pos]) or \
+                                (type(self.poses[spacy_pos]) is not dict and founded_pos_key==self.poses[spacy_pos]):
 
                                 #get translate in this section
                                 #translation or link
@@ -592,7 +621,9 @@ class Parser():
                         elif string[transcript_end+2] == "_":
                             pos_end = string.find(".", transcript_end+2)
                             founded_pos_key = string[transcript_end+2:pos_end]
-                            if founded_pos_key == poses[spacy_pos]:
+
+                            if (type(self.poses[spacy_pos]) is dict and founded_pos_key in self.poses[spacy_pos]) or \
+                                (type(self.poses[spacy_pos]) is not dict and founded_pos_key == self.poses[spacy_pos]):
                                 #extract transalation from string up untill ; sing or end of line - concat string untill;
                                 #exclude everything between (...)
                                 if self.handle_result(string[pos_end:]) == True:
@@ -612,7 +643,9 @@ class Parser():
                         pos_start = string.find("_")
                         pos_end = string.find(".",pos_start)
                         founded_pos_key = string[pos_start:pos_end]
-                        if founded_pos_key == poses[spacy_pos]:
+
+                        if (type(self.poses[spacy_pos]) is dict and founded_pos_key in self.poses[spacy_pos]) or \
+                            (type(self.poses[spacy_pos]) is not dict and founded_pos_key == self.poses[spacy_pos]):
                             #extract translation from first
                             # translation in that line or it have several 1) 2) of translations
                             #remove all square brackets from line then if anything remains then it will be the translation
@@ -668,4 +701,11 @@ def main():
         translation = p.parse_answer(answer,key)
 
 if __name__ == '__main__':
+    #find what possible POS can be in Spacy and correct my poses dictionary to map with possible POS in dictionary
+    #https://spacy.io/api/annotation#pos-tagging
+    #todo create sets of dictionary article - all possible POS in structure(lines where to search answer)
+    #run my function parse_answer against every possible combination for testing
+
+    #TODO protect from several _POS _POS in one string
+
     main()
