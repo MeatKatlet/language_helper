@@ -2,6 +2,7 @@ import spacy
 from parser import Parser
 
 #test this on one word - POS will change?
+    #seems to be work - buying. he, advertisement...
 #token.lemma_ - send this to translation?
 #token.tag_ - detalization of POS above
 
@@ -14,8 +15,13 @@ def main():
     parser_poses = Parser.poses #translate only these
     nlp = spacy.load("en_core_web_sm")
     doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+    doc2 = nlp("looking")
 
     for token in doc:
+        print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
+              token.shape_, token.is_alpha, token.is_stop)
+
+    for token in doc2:
         print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
               token.shape_, token.is_alpha, token.is_stop)
 

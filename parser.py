@@ -1,6 +1,6 @@
 from io import StringIO
 import re
-import spacy
+
 test = {
 "test1" : '''151 "relative" mueller_base "Mueller English-Russian Dictionary (base)": text follows
 relative
@@ -197,13 +197,13 @@ plane
 
   II [ple?n]
 
-    1. _n.
+    1. _nn.
 
       1) _тех. рубанок; струг; калёвка
 
       2) _стр. гладилка, мастерок
 
-    2. _v.
+    2. _vv.
 
       1) строгать; скоблить; выравнивать
 
@@ -211,7 +211,7 @@ plane
 
       #) plane away, plane down состругивать
 
-  III [ple?n] _n. платан
+  III [ple?n] _nnn. платан
 
 .
 250 Command complete
@@ -250,7 +250,7 @@ lean
 
       *) to lean over backwards ударяться в другую крайность
 
-    2. _n. наклон
+    2. _nn. наклон
 
 .
 250 Command complete
@@ -361,8 +361,7 @@ class Parser():
         "NOUN": "_n",
         # "NUM" : "_n-card", #1, 2017, one, seventy-seven, IV, MMXIV
         # "PART" : "",#particle	’s, not,
-        "PRON": {"_pron":None, "_pers":None, "_demonstr":None, "_emph":None, "_indef":None, "_inter":None, "_poss":None, "_recipr":None, "_refl":None, "_rel":None},
-    # pronoun - местоимение/личное местоимение I, you, he, she, myself, themselves, somebody
+        "PRON": {"_pron":None, "_pers":None, "_demonstr":None, "_emph":None, "_indef":None, "_inter":None, "_poss":None, "_recipr":None, "_refl":None, "_rel":None},# pronoun - местоимение/личное местоимение I, you, he, she, myself, themselves, somebody
         # "PROPN" : "",# proper noun - Mary, John, London, NATO, HBO: dictionary of places or Names or Abbrevations
         # "PUNCT" : "",# ., (, ), ?
         "SCONJ": "_cj",  # subordinating conjunction	if, while, that
@@ -394,10 +393,15 @@ class Parser():
 
         }
         """
+    def several_pos_protect(self,line):
+        pattern = '_[a-z]+\.'
+        return re.sub(pattern, " ", line, 0).strip()
 
     def handle_result(self,text):
 
         res = self.remove_round_bracket_content(text)
+        res["str"] = self.several_pos_protect(res["str"])
+
         if res["semicilon_end"] == False and res["str"] == "":
             # search further
             self.multiline_begins = True
@@ -412,7 +416,11 @@ class Parser():
         return False
 
     def remove_round_bracket_content(self,line):
-        #TODO а) in the middle
+        pattern = ' [а-я]{1}\)|\;[а-я]{1}\)|\.[а-я]{1}\)'
+        line = re.sub(pattern, " ", line, 0)
+        pattern2 = '\;[а-я]{1}\)'
+        line = re.sub(pattern2, ";", line, 0)
+
         r = ""
         search_from = 0
         if self.breacket_open_on_prev_line == True:#if on previous line breacket was open!
@@ -464,7 +472,7 @@ class Parser():
 
         return {"semicilon_end":False,"str":r.strip()}
 
-    def parse_answer(self, answer,key,spacy_pos="spacy_pos1",origin_word = ""):
+    def parse_answer(self, answer,spacy_pos="spacy_pos1",origin_word = ""):
         #get type of answwer? 151 or 152
         #lines = answer.split("\n")
         mode = -1#0,1,2
@@ -694,18 +702,52 @@ class Parser():
 
 def main():
     p = Parser()
-    for key,answer in test.items():
-        p.translation = ""
-        p.multiline_begins = False
-        p.pos_finded_above = False
-        translation = p.parse_answer(answer,key)
+    #Parser.poses["NON"] = "_non"
+    Parser.poses["PREP"] = "_prep"
+    Parser.poses["P"] = "_p"
+    Parser.poses["NN"] = "_nn"
+    Parser.poses["VV"] = "_vv"
+    Parser.poses["NNN"] = "_nnn"
+
+
+    test_set = {
+        "test1" : [["NOUN","_n"],["ADJ","_a"],["NON","_non"]],
+        "test2": [["NOUN","_n"],["NON","_non"]],
+        "test3": [["VERB","_v"],["NON","_non"]],
+        "test4": [["VERB","_v"],["NON","_non"]],
+        "test5": [["ADJ","_a"],["NON","_non"]],
+        "test7": [["ADJ","_a"],["ADV","_adv"],["NOUN","_n"],["PREP","_prep"],["NON","_non"]],
+        "test8": [["P","_p"],["NON","_non"]],
+        "test9": [["PRON","_pron"],["NON","_non"]],
+        "test10": [["ADV","_adv"],["SCONJ","_cj"]],
+        "test11": [["NOUN","_n"],["ADJ","_a"],["VERB","_v"],["NN","_nn"],["VV","_vv"],["NNN","_nnn"],["NON","_non"]],
+        "test12": [["ADJ","_a"],["NOUN","_n"],["VERB","_v"],["NN","_nn"],["NON","_non"]],
+        "test13": [["ADV","_adv"],["INTJ","_int"],["NON","_non"]],
+        "test14": [["NOUN","_n"],["NON","_non"]],
+        "test15": [["PREP","_prep"],["NON","_non"]]
+    }
+
+    for key,value in test_set.items():
+        for i in range(0,len(value)):
+            spacy_pos = value[i][0]
+
+            p.translation = ""
+            p.multiline_begins = False
+            p.pos_finded_above = False
+            translation = p.parse_answer(test[key],spacy_pos)
+
+    p.translation = ""
+    p.multiline_begins = False
+    p.pos_finded_above = False
+    translation = p.parse_answer(test["test6"], "spacy_pos1","seamlessly")
+
 
 if __name__ == '__main__':
     #find what possible POS can be in Spacy and correct my poses dictionary to map with possible POS in dictionary
     #https://spacy.io/api/annotation#pos-tagging
-    #todo create sets of dictionary article - all possible POS in structure(lines where to search answer)
+    #create sets of dictionary article - all possible POS in structure(lines where to search answer)
     #run my function parse_answer against every possible combination for testing
 
-    #TODO protect from several _POS _POS in one string
-
+    #protect from several _POS _POS in one string
+    #а) in the middle
     main()
