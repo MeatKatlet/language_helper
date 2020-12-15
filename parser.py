@@ -607,6 +607,9 @@ class Parser():
                                 # 1.2
                                 if founded_pos_key=="_p":#? does this the only variant(what is p?)
                                     #find - от
+                                    #_p. и _p-p. от seek
+                                    #_p. и _p-p. от get 1
+                                    #_p. и _p-p. от fight 2
                                     a = 1
                                 # 1.3
 
@@ -775,4 +778,5 @@ if __name__ == '__main__':
 
     #protect from several _POS _POS in one string
     #а) in the middle
+    #token.lemma_ - always send this and I dont need to have to create code for #_p. и _p-p. от seek cases!
     main()
