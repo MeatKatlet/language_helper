@@ -51,29 +51,40 @@ def test():
         print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
               token.shape_, token.is_alpha, token.is_stop)
 
-def main():
+def translate():
     # cd /home/kirill/sbd/dictserver
     os.chdir("/home/kirill/sbd/dictserver")
 
-    #res = subprocess.run(["pwd"],capture_output=True)
+    # res = subprocess.run(["pwd"],capture_output=True)
     p = Parser()
     nlp = spacy.load("en_core_web_sm")
-    #doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+    # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
     doc = nlp("looking")
 
     for token in doc:
-        #java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m relative
+        # java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m relative
+        translation = ""
+        cmd = "java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+        try:
+            res = subprocess.check_output(cmd, shell=True)
 
-        cmd = "java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m "+token.lemma_
-        res = subprocess.check_output(cmd, shell=True)
+            answer = res.decode("utf-8")
+            p.translation = ""
+            p.multiline_begins = False
+            p.pos_finded_above = False
 
-        answer = res.decode("utf-8")
-        p.translation = ""
-        p.multiline_begins = False
-        p.pos_finded_above = False
+            translation = p.parse_answer(answer, token.pos_, token.lemma_)
 
-        translation = p.parse_answer(answer, token.pos_, token.lemma_)
-        a = 1
+            return translation
+
+        finally:
+            if translation != "":
+                return translation
+            return "error without exception"
+
+def main():
+    translation = translate()
+    a = 1
 
 if __name__ == '__main__':
     main()
