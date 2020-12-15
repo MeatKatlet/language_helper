@@ -77,8 +77,7 @@ beautiful
 .
 250 Command complete
 221 Closing connection''',
-"test6" : '''rg.dict.client.JDict -h localhost -p 2628 -d mueller_base -m seamlessly
-152 16 matches found: list follows
+"test6" : '''152 16 matches found: list follows
 mueller_base "seam"
 mueller_base "seamaid"
 mueller_base "seaman"
@@ -398,6 +397,9 @@ class Parser():
         return re.sub(pattern, " ", line, 0).strip()
 
     def handle_result(self,text):
+        if text=="":
+            self.multiline_begins = True
+            return False
 
         res = self.remove_round_bracket_content(text)
         res["str"] = self.several_pos_protect(res["str"])
@@ -433,17 +435,19 @@ class Parser():
         semicolon = line.find(";", search_from)
 
         if br_start != -1 and semicolon == -1:
-            r += line[search_from:br_start]
+            r += line[search_from+1:br_start]
             self.breacket_open_on_prev_line = True
 
         elif br_start != -1 and semicolon != -1 and semicolon < br_start:
-            r += line[search_from:semicolon]
+            r += line[search_from+1:semicolon]
             return {"semicilon_end": True, "str": r.strip()}
+        elif br_start != -1 and semicolon != -1 and semicolon > br_start:
+            r += line[search_from + 1:br_start]
         elif br_start==-1 and semicolon != -1:
-            r += line[search_from:semicolon]
+            r += line[search_from+1:semicolon]
             return {"semicilon_end": True, "str": r.strip()}
         elif br_start == -1 and semicolon == -1:
-            r += line[search_from:]
+            r += line[search_from+1:]
             return {"semicilon_end": False, "str": r.strip()}
 
         while br_start != -1:
@@ -460,15 +464,15 @@ class Parser():
 
 
             if br_start != -1 and (br_start-br_end) > 1 and semicolon == -1:
-                r += line[br_end:br_start]
+                r += line[br_end+1:br_start]
             elif br_start != -1 and (br_start - br_end) > 1 and semicolon != -1 and semicolon < br_start:
-                r += line[br_end:semicolon]
+                r += line[br_end+1:semicolon]
                 return {"semicilon_end":True,"str":r.strip()}
             elif br_start == -1 and semicolon != -1:
-                r += line[br_end:semicolon]
+                r += line[br_end+1:semicolon]
                 return {"semicilon_end":True,"str":r.strip()}
             elif br_start == -1 and semicolon == -1:
-                r += line[br_end:]
+                r += line[br_end+1:]
 
         return {"semicilon_end":False,"str":r.strip()}
 
@@ -535,17 +539,18 @@ class Parser():
         #translation [gfgf]
 
 
-        if spacy_pos not in self.poses:
+        if spacy_pos not in self.poses and answer[0:3]=="151":
             return "spacy_pos no in parser list"
 
 
 
         pattern = '^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}) \['
         pattern2 = '^[0-9]{1,2}\. _'
-        pattern3 = '^([0-9]{1,2}\))|^(\*\)|^(\#\))'
+        pattern3 = '^([0-9]{1,2}\))|^(\*\))|^(\#\))'
 
         result = ""
         first_line = 0 #
+        prev_lens = 0
         output = StringIO(answer, newline=None)
         while line := output.readline():
             if mode == -1:#determinetype of answer
@@ -556,11 +561,12 @@ class Parser():
                 elif line[:3]=="152":
                     mode = 1
                     first_line = 1
+
                     continue
                 elif line[:3]=="250":
-                    if mode==1 and result != "":
+                    #if mode==1 and result != "":
                         #result - word to search in one another request to dictionary
-                        a = 1
+                        #a = 1
                     break
                 else:
                     first_line = 1
@@ -571,7 +577,16 @@ class Parser():
                 elif first_line ==2:
                     string = line.strip()
 
+                    if len(string)==0:
+                        continue
+
+                    if len(string)==1 and string[0] == ".":
+                        return self.translation
+
                     if string[0] == "[":#1.case or 0.case
+                        if self.translation != "":
+                            return self.translation
+
                         transcript_end = string.find("]")
                         pos_start = string.find("_",transcript_end,transcript_end+3)
 
@@ -605,7 +620,7 @@ class Parser():
                                 #чтобы не было () внутри
                                 else:
 
-                                    if self.handle_result(string[pos_end:])==True:
+                                    if self.handle_result(string[pos_end+1:])==True:
                                         return self.translation
                                     self.pos_finded_above = True
 
@@ -617,6 +632,9 @@ class Parser():
                             continue
 
                     elif re.search(pattern, string) != None:#2.case
+                        if self.translation != "":
+                            return self.translation
+
                         self.multiline_begins = False
                         self.breacket_open_on_prev_line = False
 
@@ -634,7 +652,7 @@ class Parser():
                                 (type(self.poses[spacy_pos]) is not dict and founded_pos_key == self.poses[spacy_pos]):
                                 #extract transalation from string up untill ; sing or end of line - concat string untill;
                                 #exclude everything between (...)
-                                if self.handle_result(string[pos_end:]) == True:
+                                if self.handle_result(string[pos_end+1:]) == True:
                                     return self.translation
                                 self.pos_finded_above = True
                             else:
@@ -645,6 +663,9 @@ class Parser():
                             continue
 
                     elif re.search(pattern2, string) != None:#3.case
+                        if self.translation != "":
+                            return self.translation
+
                         self.multiline_begins = False
                         self.breacket_open_on_prev_line = False
 
@@ -658,7 +679,7 @@ class Parser():
                             # translation in that line or it have several 1) 2) of translations
                             #remove all square brackets from line then if anything remains then it will be the translation
 
-                            if self.handle_result(string[pos_end:]) == True:
+                            if self.handle_result(string[pos_end+1:]) == True:
                                 return self.translation
                             self.pos_finded_above = True
 
@@ -667,13 +688,16 @@ class Parser():
                             continue
 
                     elif re.search(pattern3, string) != None:#4.case
+                        if self.translation != "":
+                            return self.translation
+
                         self.multiline_begins = False
                         self.breacket_open_on_prev_line = False
 
                         if self.pos_finded_above == True:#only if this section in finded POS above !
                             round_brk_start = string.find(")")
 
-                            if self.handle_result(string[round_brk_start:]) == True:
+                            if self.handle_result(string[round_brk_start+1:]) == True:
                                 return self.translation
 
                     elif self.multiline_begins == True:#for multiliner
@@ -685,7 +709,6 @@ class Parser():
             elif mode==1:
                 string = line.strip()
                 strings = string.split(" ")
-                prev_lens = 0
                 if len(strings) == 2:
                     variant = strings[1].replace('"', '')
                     if len(origin_word)> len(variant):
@@ -697,6 +720,8 @@ class Parser():
 
                 #test this and make sure. i think need to search by prefix
 
+        if mode==1:
+            return result
 
         return self.translation
 
