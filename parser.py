@@ -362,6 +362,7 @@ class Parser():
         # "PART" : "",#particle	’s, not,
         "PRON": {"_pron":None, "_pers":None, "_demonstr":None, "_emph":None, "_indef":None, "_inter":None, "_poss":None, "_recipr":None, "_refl":None, "_rel":None},# pronoun - местоимение/личное местоимение I, you, he, she, myself, themselves, somebody
         # "PROPN" : "",# proper noun - Mary, John, London, NATO, HBO: dictionary of places or Names or Abbrevations
+        "PROPN" : "_n",
         # "PUNCT" : "",# ., (, ), ?
         "SCONJ": "_cj",  # subordinating conjunction	if, while, that
         # "SYM" : "", #symbol	$, %, §, ©, +, −, ×, ÷, =, :), 😝
@@ -392,11 +393,11 @@ class Parser():
 
         }
         """
-    def several_pos_protect(self,line):
+    def several_pos_protect(self, line):
         pattern = '_[a-z]+\.'
         return re.sub(pattern, " ", line, 0).strip()
 
-    def handle_result(self,text):
+    def handle_result(self, text):
         if text=="":
             self.multiline_begins = True
             return False
@@ -417,7 +418,7 @@ class Parser():
 
         return False
 
-    def remove_round_bracket_content(self,line):
+    def remove_round_bracket_content(self, line):
         pattern = ' [а-я]{1}\)|\;[а-я]{1}\)|\.[а-я]{1}\)'
         line = re.sub(pattern, " ", line, 0)
         pattern2 = '\;[а-я]{1}\)'
@@ -476,7 +477,7 @@ class Parser():
 
         return {"semicilon_end":False,"str":r.strip()}
 
-    def parse_answer(self, answer,spacy_pos="spacy_pos1",origin_word = ""):
+    def parse_answer(self, answer, spacy_pos="spacy_pos1", origin_word=""):
         #get type of answwer? 151 or 152
         #lines = answer.split("\n")
         mode = -1#0,1,2

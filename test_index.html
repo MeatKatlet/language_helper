@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+            .buttons {
+                font-size: 4em;
+                display: flex;
+                justify-content: center;
+            }
+            .button, .value {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
+            .button {
+                cursor: pointer;
+                user-select: none;
+            }
+            .minus {
+                color: red;
+            }
+            .plus {
+                color: green;
+            }
+            .value {
+                min-width: 2em;
+            }
+            .state {
+                font-size: 2em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="buttons">
+            <div class="word button">TRanslate</div>
+        </div>
+        <div class="value">Your connection handler exits after processing one message</div>
+        <div class="translation"></div>
+        <script>
+            function send(text) {
+                console.log(text);
+                websocket.send(JSON.stringify({action: 'word', 'word': text}));
+
+            }
+            var word = document.querySelector('.word'),
+                value = document.querySelector('.value'),
+                translation = document.querySelector('.translation'),
+
+                websocket = new WebSocket("ws://127.0.0.1:6789/");
+            word.onclick = function (event) {
+                var words = value.innerText.split(" ");
+                var i = 1
+                //var pair = 0
+                //var pair_text = ""
+                words.forEach(function(item){
+                   //if (pair < 2) {
+                   //     pair_text += item+" ";
+                   //    pair++;
+                   //}
+                   //else if (pair==2) {
+                       //console.log(pair_text);
+                       //var to_send = pair_text;
+                       setTimeout(() => send(item), 5000*i);
+                        i += 1;
+                        //pair_text = ""
+                        //pair_text += item+" ";
+                       //pair = 1;
+                   //}
+
+
+                });
+                /*if (pair_text != "") {
+                        setTimeout(() => send(pair_text), 5000*i);
+                        i += 1;
+                        pair_text = "";
+                       pair = 0;
+                }*/
+
+
+            }
+
+            websocket.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                switch (data.type) {
+                    case 'state':
+                        translation.textContent += data.value+" ";
+                        break;
+                    case 'end':
+                        console.error("END");
+                        break;
+                    default:
+                        console.error("unsupported event", data);
+                }
+            };
+
+        </script>
+    </body>
+</html>
