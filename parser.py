@@ -362,7 +362,7 @@ class Parser():
         # "PART" : "",#particle	’s, not,
         "PRON": {"_pron":None, "_pers":None, "_demonstr":None, "_emph":None, "_indef":None, "_inter":None, "_poss":None, "_recipr":None, "_refl":None, "_rel":None},# pronoun - местоимение/личное местоимение I, you, he, she, myself, themselves, somebody
         # "PROPN" : "",# proper noun - Mary, John, London, NATO, HBO: dictionary of places or Names or Abbrevations
-        "PROPN" : "_n",
+        #"PROPN" : "_n",
         # "PUNCT" : "",# ., (, ), ?
         "SCONJ": "_cj",  # subordinating conjunction	if, while, that
         # "SYM" : "", #symbol	$, %, §, ©, +, −, ×, ÷, =, :), 😝

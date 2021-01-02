@@ -64,12 +64,11 @@ class Translator:
         self.parser = Parser()
         self.nlp = spacy.load("en_core_web_sm")
 
-
     def translate(self, word):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
         #print(word)
         doc = self.nlp(word)
-        #translation_res = ""
+        translation_res = ""
         for token in doc:
             # java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m relative
             translation = ""
@@ -89,20 +88,25 @@ class Translator:
 
                     translation = self.parser.parse_answer(answer, token.pos_, token.lemma_)
 
-                    return translation
+                    #return translation
+                    translation_res += translation + " "
 
                 finally:
                     if translation != "":
-                        return translation
+                        #return translation
+                        translation_res += translation + " "
 
-                    return "error"
+                    #return "error"
+                    translation_res += "error "
 
-            else:
-                return word
+            #else:
+                #return word
+
+        return translation_res
 
 
-def state_event(v):
-    return json.dumps({"type": "state", "value": v})
+def state_event(v, word, index):
+    return json.dumps({"type": "state", "value": v, "word": word, "index": index})
 
 
 def end_event():
@@ -116,7 +120,7 @@ async def handler(websocket, path):
             data = json.loads(message)
             if data["action"] == "word":
                 translation = translator.translate(data["word"])
-                await websocket.send(state_event(translation))
+                await websocket.send(state_event(translation, data["word"], data["index"]))
             else:
                 logging.error("unsupported event: {}", data)
                 print("unsupported event: {}", data)
@@ -128,14 +132,16 @@ translator = Translator()
 
 
 def main():
+    #TODO in extension words and phrases are formed in cnunks - this need to take into account
+    #
     #check if vocabulary server is running
-
     l = subprocess.getstatusoutput("ps aux |grep 'jdictd.jar'|wc -l")
 
     if l[1] == '3':
 
         start_server = websockets.serve(handler, "localhost", 6789, ping_interval=40, ping_timeout=40)
         # todo what will be if timeout exceeds? it will reopen connection by itself?
+        #under debugger its works infinytly!
         asyncio.get_event_loop().run_until_complete(start_server)
         asyncio.get_event_loop().run_forever()
 

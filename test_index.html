@@ -36,13 +36,19 @@
             .state {
                 font-size: 2em;
             }
+            .translation > span {
+                border: solid 1px black;
+                float: left;
+            }
         </style>
     </head>
     <body>
         <div class="buttons">
             <div class="word button">TRanslate</div>
         </div>
-        <div class="value">Your connection handler exits after processing one message</div>
+        <div class="value">
+            My name is Bill Newman. I'm a clinical geneticist and professor of translational genomic medicine at the University of Manchester. I started in clinical genetics nearly 25 years ago. And at that time we were really only able to do genetic testing for a very small number of inherited conditions what we've seen over the last 10 years with some of the new technologies is that we're allowed to do much more extensive testing. The biggest challenge is ensuring that we have enough clinical Genesis genetic counselors and laboratory scientists to deliver the benefits that's come with genomic medicine. One of the things that I'm struck by is speaking with a number of clinical geneticists is that they feel that clinical genetics and genetic testing is being done by Lots of different people and so that diminishes the role of clinical genetics in some ways. I think it absolutely enhances the role of Genesis and the need for Genesis clinical Genesis is going to be having to work much more closely with them to help them to interpret and understand those more complex results so that we can really see patient benefit one of the really big developments. I think that's going to happen over. The next few years is the role of clinical Genesis in more common diseases that aren't due to a single genetic change, but maybe the combination of multiple genetic variants. We're already seeing the use of something called polygenic risk course. This is a really useful development to help us work out people who may be at increased risk of certain conditions. Some of those risks are really very high completely comparable to the risks that you would see for a single genetic change therefore the skills that we have in clinical genetics. I think can be applied in that setting particularly for that. Very high risk group where we need to explain the information both to the individual and the implications for other family members one other things that we've seen over the last few years is an increase in opportunities to be involved in new types of treatment where we never thought that treatments would be available. There are lots of Novel therapies that are now being used in patients with genetic conditions. For example, gene therapy is being used in patients with inherited visual impairment increasingly. We're seeing how genetics can help us to reduce the risk for some individuals a good example of that is some babies one in 500 are born with a particular genetic change in their mitochondria, which means that when they're given an antibiotic called Gentamicin that they would develop profound irreversible hearing loss 90,000 babies in the UK every year are treated on Special Care Baby units with this antibiotic that antibiotic has to be given within the first hour. Of them arriving on the unit but genetic testing for this variant usually takes two to three days working with a local company. We've developed a point of care test which allows us from a simple cheek swap to determine whether that baby carries that genetic variant yes or no just within 15 minutes. And so therefore we can work out which antibiotics they should get so they won't develop hearing loss when it can be avoided genetics is changing. So rapidly there are so many advances so many findings from research that are really exciting. One of the key roles of clinical geneticists is to assimilate that information separate out what's really clinically relevant. And what's just interesting and take a leading role to disseminate and share their information with colleagues so that we can translate those findings into real practice as quickly as possible the range of treatments the opportunities for treatments for a (for the whole? )Range of conditions. It's going to be completely transformative over the next number of years. I think that's a wonderful thing.
+        </div>
         <div class="translation"></div>
         <script>
             function send(text) {
@@ -68,7 +74,7 @@
                    //else if (pair==2) {
                        //console.log(pair_text);
                        //var to_send = pair_text;
-                       setTimeout(() => send(item), 5000*i);
+                       setTimeout(() => send(item), 2000*i);
                         i += 1;
                         //pair_text = ""
                         //pair_text += item+" ";
@@ -91,7 +97,11 @@
                 var data = JSON.parse(event.data);
                 switch (data.type) {
                     case 'state':
-                        translation.textContent += data.value+" ";
+                        //translation.textContent += data.value+" ";
+                        var n = document.createElement("span")
+
+                        n.innerText = data.word + " = " + data.value + " ";
+                        translation.appendChild(n);
                         break;
                     case 'end':
                         console.error("END");
