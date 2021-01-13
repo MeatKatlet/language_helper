@@ -105,27 +105,122 @@ class Translator:
         return translation_res
 
 
-def state_event(v, word, index):
+def producer_event(v):
+    return json.dumps({"type": "producer_event", "value": v})
+
+
+def state_event(v, word, index=""):
     return json.dumps({"type": "state", "value": v, "word": word, "index": index})
 
 
-def end_event():
-    return json.dumps({"type": "end", "value": "end"})
+def error_event(v):
+    return json.dumps({"type": "error_or_disconnect_end", "value": v})
 
 
-async def handler(websocket, path):
+"""
+async def translate(websocket, path, data):
     try:
-        #await websocket.send(state_event())
+        translation = translator.translate(data["word"])
+        await websocket.send(state_event(translation, data["word"], data["index"]))
+    finally:
+        await websocket.send(error_event("translate_error"))#notify users about errors!
+"""
+
+
+async def consumer_handler(websocket, path):
+    # await websocket.send(state_event())
+    try:
         async for message in websocket:
             data = json.loads(message)
             if data["action"] == "word":
+                #await translate(websocket, path, data)
                 translation = translator.translate(data["word"])
-                await websocket.send(state_event(translation, data["word"], data["index"]))
+                await websocket.send(state_event(translation, data["word"]))#, data["index"]
+            elif data["action"] == "whosaidthis":
+                # TODO send request to volueme level when some word was sad, if one word was sad,
+                # https://stackoverflow.com/questions/5046975/how-to-read-out-volume-level-of-clients-of-pulseaudio-in-the-console
+                # parec --monitor-stream=378 --latency=2 --channels=1  2>/dev/null | od -N2 -td2 | head -n1 | cut -d' ' -f2- | tr -d ' '
+                # word |(measure average value) if it stops saying then
+                # or run it completly independently in the loop and constantly measure volueme
+                # SINK=$(pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1)
+                a = 1
+            elif data["action"] == "pulseaudioinit":
+                # todo init pulse through bash script
+                a = 1
+            elif data["action"] == "pulseaudioinit":
+                # todo return to deafult audio settings
+                a = 1
             else:
                 logging.error("unsupported event: {}", data)
                 print("unsupported event: {}", data)
     finally:
-        await websocket.send(end_event())
+        await websocket.send(error_event("consumer_handler_error"))#notify users about errors!
+
+
+async def producer():
+    await asyncio.sleep(5)#if use time.sleep(3)  then producer will not allow for consumer_handler to recieve messages
+    return "producer_message"
+
+
+async def producer_handler(websocket, path):
+    while True:
+        if websocket.open:#check if client connects
+            message = await producer()
+            await websocket.send(producer_event(message))
+        else:
+            print("websocket_closed")
+
+    #send() raises a ConnectionClosed exception when the client disconnects, which breaks out of the while True loop.
+    #todo stop server when I dont use extension! - connection closed
+    print("while_ended")
+
+
+async def handler(websocket, path):
+    consumer_task = asyncio.ensure_future(consumer_handler(websocket, path))
+    producer_task = asyncio.ensure_future(producer_handler(websocket, path))
+    done, pending = await asyncio.wait(
+        [consumer_task, producer_task],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+    for task in pending:
+        print("task pending cancel")
+        task.cancel()
+
+
+async def handler_old(websocket, path):
+    try:
+        #await websocket.send(state_event())
+
+        # websocket.state = {State} State.OPEN
+        # websocket.open = {bool} True
+        # websocket.closed = {bool} False
+
+        async for message in websocket:
+            data = json.loads(message)
+            if data["action"] == "word":
+                translation = translator.translate(data["word"])
+                await websocket.send(state_event(translation, data["word"]))#, data["index"]
+            elif data["action"] == "whosaidthis":
+                #TODO send request to volueme level when some word was sad, if one word was sad,
+                #https://stackoverflow.com/questions/5046975/how-to-read-out-volume-level-of-clients-of-pulseaudio-in-the-console
+                #parec --monitor-stream=378 --latency=2 --channels=1  2>/dev/null | od -N2 -td2 | head -n1 | cut -d' ' -f2- | tr -d ' '
+                # word |(measure average value) if it stops saying then
+                #or run it completly independently in the loop and constantly measure volueme
+                #SINK=$(pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1)
+                a = 1
+            elif data["action"] == "pulseaudioinit":
+                #todo init pulse through bash script
+                a = 1
+            elif data["action"] == "pulseaudioinit":
+                # todo return to deafult audio settings
+                a = 1
+            else:
+
+                logging.error("unsupported event: {}", data)
+                print("unsupported event: {}", data)
+    finally:
+
+        await websocket.send(error_event())#notify users about errors!
 
 
 translator = Translator()
@@ -139,7 +234,7 @@ def main():
 
     if l[1] == '3':
 
-        start_server = websockets.serve(handler, "localhost", 6789, ping_interval=40, ping_timeout=40)
+        start_server = websockets.serve(handler, "localhost", 6789)#, ping_interval=40, ping_timeout=40
         # todo what will be if timeout exceeds? it will reopen connection by itself?
         #under debugger its works infinytly!
         asyncio.get_event_loop().run_until_complete(start_server)
@@ -156,3 +251,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    #TODO shutdown server when meeting closed - by button? start when Google Meet is open/check server running before meeting
+    #check all servers running before meeting
+    #start dictionary server/shutdown
+    #

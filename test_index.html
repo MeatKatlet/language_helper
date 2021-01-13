@@ -62,6 +62,8 @@
 
                 websocket = new WebSocket("ws://127.0.0.1:6789/");
             word.onclick = function (event) {
+                send("clinical geneticist and professor of translational genomic medicine");
+                return true;
                 var words = value.innerText.split(" ");
                 var i = 1
                 //var pair = 0
@@ -103,8 +105,11 @@
                         n.innerText = data.word + " = " + data.value + " ";
                         translation.appendChild(n);
                         break;
-                    case 'end':
-                        console.error("END");
+                    case 'producer_event':
+                        console.log(data.value);
+                        break;
+                    case 'error_or_disconnect_end':
+                        console.log("error_or_disconnect_end");
                         break;
                     default:
                         console.error("unsupported event", data);
