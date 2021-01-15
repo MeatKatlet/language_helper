@@ -51,11 +51,23 @@
         </div>
         <div class="translation"></div>
         <script>
+            window.addEventListener('beforeunload', function (e) {
+                //alert(111);
+                var confirmationMessage = "111111";
+               //e.preventDefault();
+                //e.returnValue = '';
+                (e || window.event).returnValue = confirmationMessage;
+                return confirmationMessage;
+
+            });
+
             function send(text) {
                 console.log(text);
                 websocket.send(JSON.stringify({action: 'word', 'word': text}));
 
             }
+
+            function web() {
             var word = document.querySelector('.word'),
                 value = document.querySelector('.value'),
                 translation = document.querySelector('.translation'),
@@ -115,6 +127,8 @@
                         console.error("unsupported event", data);
                 }
             };
+            }
+
 
         </script>
     </body>
