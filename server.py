@@ -26,30 +26,30 @@ class Translator:
     def __init__(self):
         self.parser = Parser()
         self.nlp = spacy.load("en_core_web_sm")
+        self.parser.nlp = self.nlp
 
-    def translate(self, word):
+    def translate(self, phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
         # print(word)
-        doc = self.nlp(word)
+        doc = self.nlp(phrase)
         translation_res = ""
+        i = 0
         for token in doc:
             # java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m relative
             translation = ""
             # print(token.lemma_)
-            if token.pos_ in self.parser.poses:
+            if token.lemma_ == "-PRON-":
+                translation_res += token.text + " "
+
+            elif token.pos_ in self.parser.poses:
                 cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
                 try:
                     res = subprocess.check_output(cmd, shell=True)
-
                     answer = res.decode("utf-8")
-                    self.parser.translation = ""
-                    self.parser.multiline_begins = False
-                    self.parser.pos_finded_above = False
-                    # print("################################################################################################")
-                    # print(answer)
-                    # print(token.pos_)
 
-                    translation = self.parser.parse_answer(answer, token.pos_, token.lemma_)
+                    self.parser.recursion_protection = 0
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=phrase, word_index=i)
+                    translation = self.parser.resolve_linkanswer(translation, token.pos_)
 
                     # return translation
                     translation_res += translation + " "
@@ -62,8 +62,10 @@ class Translator:
                     # return "error"
                     translation_res += "error "
 
-            # else:
-            # return word
+            else:
+                translation_res += token.text + " "
+
+            i += 1
 
         return translation_res
 
@@ -72,7 +74,7 @@ class Volumemonitor():
     def __init__(self):
         self.skype_sink_id = self.get_skype_sink_id()
         self.zoom_sink_id = self.get_zoom_sink_id()
-
+        #self.one = False
 
     def get_skype_sink_id(self):
         cmd = "pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1"
@@ -119,13 +121,13 @@ class Services_dispatcher:
         if self.dictionary_runs == False:
             cmd = 'java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.server.JDictd /media/kirill/System/dictserver/Mueller/mueller.ini'
             self.dictionary_process = subprocess.Popen(cmd, shell=True)
-            if self.dictionary_process.poll() is None:
+            if self.dictionary_process.poll() is not None:
                 return "dictionary not started"
         self.dictionary_runs = True
         return True
 
     def stop_dictionary(self):
-        if self.dictionary_process.poll() is not None:
+        if self.dictionary_process.poll() is None:
             self.dictionary_process.kill()
             self.dictionary_runs = False
             self.dictionary_process = None
@@ -138,7 +140,7 @@ class Services_dispatcher:
             answer = res.decode("utf-8")
             output = StringIO(answer, newline=None)
             while line := output.readline():
-                if line == "Chrome Google Meet Mic not found. Restart Meet Tab!":
+                if line == "Chrome Google Meet Mic not found. Restart Meet Tab!\n":
                     return line
         self.pulse_audio_default = False
         return True
@@ -158,7 +160,7 @@ class Services_dispatcher:
         answer = res.decode("utf-8")
         output = StringIO(answer, newline=None)
         while line := output.readline():
-            if line == "Skype Speaker not found. Restart Skype or run test call from its settings!":
+            if line == "Skype Speaker not found. Restart Skype or run test call from its settings!\n":
                 return line
         return True
 
@@ -256,6 +258,8 @@ async def consumer_handler(websocket, path):
             elif data["action"] == "stop_dictionary":
                 res = services_dispatcher.stop_dictionary()
                 await websocket.send(service_event(data["action"], res))
+            elif data["action"] == "init_request":
+                await websocket.send(service_event(data["action"], "ok"))
             else:
                 logging.error("unsupported event: {}", data)
                 print("unsupported event: {}", data)
@@ -278,7 +282,7 @@ async def producer():
     # word |(measure average value) if it stops saying then
     # or run it completly independently in the loop and constantly measure volueme
     # SINK=$(pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1)
-
+    #await asyncio.sleep(1)
     #   # if use time.sleep(3)  then producer will not allow for consumer_handler to recieve messages
     sink = volume_monitor.get_active_meeting_soft_sink()  # every skype call change it sink! so maybe zoom too? but browser contiunue to recieve on old sink!
     if sink != False:
@@ -354,7 +358,7 @@ def main():
 
     # if l[1] == '3':
 
-    start_server = websockets.serve(handler, "localhost", 6789)  # , ping_interval=40, ping_timeout=40
+    start_server = websockets.serve(handler, "localhost", 6789, ping_interval=20, ping_timeout=20)  #
     # todo what will be if timeout exceeds? it will reopen connection by itself?
     # under debugger its works infinytly!
     asyncio.get_event_loop().run_until_complete(start_server)
