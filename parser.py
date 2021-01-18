@@ -337,7 +337,7 @@ class Parser():
                                 word_to_search = string[transcript_end+4:]
                                 answer2 = self.inner_request_to_dict(word_to_search)
                                 if answer2 == 'error in inner request':
-                                    return answer2
+                                    return ""
 
                                 self.recursion_protection = 0
                                 translation = self.parse_answer(answer2, spacy_pos=spacy_pos)
@@ -466,7 +466,7 @@ class Parser():
             translation = result
             answer2 = self.inner_request_to_dict(result)
             if answer2 == 'error in inner request':
-                return answer2
+                return ""
 
             #TODO what POS to search?
             # insert result into original phrase and perform spacy nlp? - then get POS of result and pass it down? or only nlp(result)?
@@ -498,7 +498,7 @@ class Parser():
             digit_adress_to_search = parts2[1]+"."
             answer2 = self.inner_request_to_dict(word_to_search)
             if answer2 == 'error in inner request':
-                return answer2
+                return ""
 
             self.recursion_protection = 0
             translation = self.parse_answer(answer2, spacy_pos=pos, adress_to_search=digit_adress_to_search)
@@ -508,10 +508,16 @@ class Parser():
 
     def inner_request_to_dict(self, word_to_search):
         cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + word_to_search
-
-        res = subprocess.check_output(cmd, shell=True)
-        answer = res.decode("utf-8")
-        if answer == "":
-            answer = "error in inner request"
+        return_code = 0
+        answer = ""
+        try:
+            res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+            answer = res.decode("utf-8")
+        except Exception as e:
+            return_code = -1  #e.returncode
+            pass
+        finally:
+            if answer == "" or return_code != 0:
+                answer = "error in inner request"
 
         return answer

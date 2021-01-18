@@ -10,10 +10,6 @@ import logging
 from io import StringIO
 
 logging.basicConfig()
-# test this on one word - POS will change?
-# seems to be work - buying. he, advertisement...
-# token.lemma_ - send this to translation?
-# token.tag_ - detalization of POS above
 
 """
 https://spacy.io/usage/spacy-101#features
@@ -30,40 +26,36 @@ class Translator:
 
     def translate(self, phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
-        # print(word)
         doc = self.nlp(phrase)
         translation_res = ""
         i = 0
         for token in doc:
-            # java -cp jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m relative
             translation = ""
-            # print(token.lemma_)
             if token.lemma_ == "-PRON-":
-                translation_res += token.text + " "
+                translation_res += token.text + " <span>|</span> "
 
             elif token.pos_ in self.parser.poses:
                 cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+                return_code = 0
                 try:
-                    res = subprocess.check_output(cmd, shell=True)
+                    res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
                     answer = res.decode("utf-8")
 
                     self.parser.recursion_protection = 0
                     translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=phrase, word_index=i)
                     translation = self.parser.resolve_linkanswer(translation, token.pos_)
 
-                    # return translation
-                    translation_res += translation + " "
-
+                except Exception as e:
+                    return_code = -1  # e.returncode
+                    pass
                 finally:
-                    if translation != "":
-                        # return translation
-                        translation_res += translation + " "
-
-                    # return "error"
-                    translation_res += "error "
+                    if translation == "" or return_code != 0:
+                        translation_res += "/"+token.text+"/ " #"error "
+                    else:
+                        translation_res += translation + " <span>|</span> "
 
             else:
-                translation_res += token.text + " "
+                translation_res += token.text + " <span>|</span> "
 
             i += 1
 
@@ -282,7 +274,7 @@ async def producer():
     # word |(measure average value) if it stops saying then
     # or run it completly independently in the loop and constantly measure volueme
     # SINK=$(pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1)
-    #await asyncio.sleep(1)
+    await asyncio.sleep(1)
     #   # if use time.sleep(3)  then producer will not allow for consumer_handler to recieve messages
     sink = volume_monitor.get_active_meeting_soft_sink()  # every skype call change it sink! so maybe zoom too? but browser contiunue to recieve on old sink!
     if sink != False:
