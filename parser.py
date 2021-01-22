@@ -20,9 +20,11 @@ class Parser():
         # "PROPN" : "",# proper noun - Mary, John, London, NATO, HBO: dictionary of places or Names or Abbrevations
         #"PROPN" : "_n",
         # "PUNCT" : "",# ., (, ), ?
-        "SCONJ": "_cj",  # subordinating conjunction	if, while, that
+        # todo "SCONJ": "_cj" - "that" - error - need to find unteel  next semicolon if in current is ""
+            # recently I will just exclude this type of words from translation
+        #"SCONJ": "_cj",  # subordinating conjunction	if, while, that
         # "SYM" : "", #symbol	$, %, §, ©, +, −, ×, ÷, =, :), 😝
-        "VERB": {"_v":None, "_inf":None, "_p":None}
+        "VERB": {"_v": None, "_inf": None, "_p": None, "_p-p": None}
         # "X" : "", #other	sfpksdpsxmsa
         # "SPACE" : "" #space
     }
@@ -52,7 +54,7 @@ class Parser():
         }
         """
     def several_pos_protect(self, line):
-        pattern = '_[a-z]+\.'
+        pattern = '_[a-z]+\.|_[а-я]+\.'
         return re.sub(pattern, " ", line, 0).strip()
 
     def handle_result(self, text):
@@ -82,6 +84,8 @@ class Parser():
         line = re.sub(pattern, " ", line, 0)
         pattern2 = '\;[а-я]{1}\)'
         line = re.sub(pattern2, ";", line, 0)
+        pattern3 = '^[0-9]+\)'
+        line = re.sub(pattern3, "", line, 0)
 
         r = ""
         search_from = 0
@@ -170,7 +174,7 @@ class Parser():
 
         return res
 
-    def parse_answer(self, answer, spacy_pos="spacy_pos1", origin_word="", adress_to_search=False, original_phrase=False, word_index=False):
+    def parse_answer(self, answer, spacy_pos="spacy_pos1", origin_word="", adress_to_search1=False, adress_to_search2=False, original_phrase=False, word_index=False):
         self.translation = ""
         self.multiline_begins = False
         self.pos_finded_above = False
@@ -240,8 +244,8 @@ class Parser():
         #translation [gfgf]
 
 
-        if spacy_pos not in self.poses and answer[0:3]=="151":
-            return "spacy_pos no in parser list"
+        if spacy_pos not in self.poses: #and answer[0:3]=="151":
+            return origin_word  #spacy_pos no in parser list
 
 
         pattern = '^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}) \['
@@ -254,16 +258,16 @@ class Parser():
         output = StringIO(answer, newline=None)
         while line := output.readline():
             if mode == -1:#determinetype of answer
-                if line[:3]=="151":
+                if line[:3] == "151":
                     mode = 0
                     first_line = 1
                     continue
-                elif line[:3]=="152":
+                elif line[:3] == "152":
                     mode = 1
                     first_line = 1
 
                     continue
-                elif line[:3]=="250":
+                elif line[:3] == "250":
                     #if mode==1 and result != "":
                         #result - word to search in one another request to dictionary
                         #a = 1
@@ -271,19 +275,19 @@ class Parser():
                 else:
                     first_line = 1
                     #error!
-            elif mode==0:
+            elif mode == 0:
                 if first_line == 1:
                     first_line = 2
-                elif first_line ==2:
+                elif first_line == 2:
                     string = line.strip()
 
-                    if len(string)==0:
+                    if len(string) == 0:
                         continue
 
-                    if len(string)==1 and string[0] == ".":
+                    if len(string) == 1 and string[0] == ".":
                         return self.translation
 
-                    if string[0] == "[" and adress_to_search == False:#1.case or 0.case
+                    if string[0] == "[" and adress_to_search2 == False:#1.case or 0.case
                         if self.translation != "":
                             return self.translation
 
@@ -333,8 +337,11 @@ class Parser():
 
                         else:#0.case
 
-                            if len(string) > transcript_end+2 and string[transcript_end+2] == "=":#CASES LIKE - [ˈkaunslə] = counsellor
+                            if len(string) > transcript_end+2 and string[transcript_end+2] == "=":  # CASES LIKE - [ˈkaunslə] = counsellor
                                 word_to_search = string[transcript_end+4:]
+                                #  add () delete [] from word
+                                word_to_search = self.remove_square_brackets(word_to_search)
+                                word_to_search = self.append_round_breakets_to_end(word_to_search)
                                 answer2 = self.inner_request_to_dict(word_to_search)
                                 if answer2 == 'error in inner request':
                                     return ""
@@ -345,9 +352,12 @@ class Parser():
 
                             continue
 
-                    elif re.search(pattern, string) != None and adress_to_search == False:#2.case
+                    elif re.search(pattern, string) != None and ((adress_to_search2 == False) or (adress_to_search1 != False and string.find(adress_to_search1) == 0)):#2.case
                         if self.translation != "":
                             return self.translation
+
+                        if adress_to_search1 != False:
+                            adress_to_search1 = False
 
                         self.multiline_begins = False
                         self.breacket_open_on_prev_line = False
@@ -401,12 +411,12 @@ class Parser():
                             #others non significant forms?
                             continue
 
-                    elif (re.search(pattern2, string) != None) and (adress_to_search == False or string.find(adress_to_search) == 0):#3.case
+                    elif (re.search(pattern2, string) != None) and (adress_to_search2 == False or (adress_to_search1 == False and adress_to_search2 != False and string.find(adress_to_search2+".") == 0)):#3.case
                         if self.translation != "":
                             return self.translation
 
-                        if adress_to_search != False:
-                            adress_to_search = False
+                        if adress_to_search2 != False:
+                            adress_to_search2 = False
 
                         self.multiline_begins = False
                         self.breacket_open_on_prev_line = False
@@ -429,9 +439,12 @@ class Parser():
                             #find appropriate 3.case with needed _POS
                             continue
 
-                    elif re.search(pattern3, string) != None and adress_to_search == False:#4.case
+                    elif re.search(pattern3, string) != None and (adress_to_search2 == False or (adress_to_search1 == False and adress_to_search2 != False and string.find(adress_to_search2+")") == 0)):#4.case
                         if self.translation != "":
                             return self.translation
+
+                        if adress_to_search2 != False:
+                            adress_to_search2 = False
 
                         self.multiline_begins = False
                         self.breacket_open_on_prev_line = False
@@ -442,7 +455,7 @@ class Parser():
                             if self.handle_result(string[round_brk_start+1:]) == True:
                                 return self.translation
 
-                    elif self.multiline_begins == True:#for multiliner
+                    elif self.multiline_begins == True and adress_to_search1 == False and adress_to_search2 == False:  #  for multiliner
 
                         if self.handle_result(string) == True:
                             return self.translation
@@ -472,7 +485,7 @@ class Parser():
             # insert result into original phrase and perform spacy nlp? - then get POS of result and pass it down? or only nlp(result)?
             #
             if original_phrase != False:
-                words = original_phrase.split(" ")
+                words = re.split(" |'", original_phrase)  # original_phrase.split(" ") spacy splits also by apostroph  - re.split(" |'" , original_phrase)
                 words[word_index] = result
                 new_phrase = " ".join(words)
 
@@ -489,19 +502,25 @@ class Parser():
         return self.translation
 
     def resolve_linkanswer(self, answer, pos):
-        pattern = '^от [a-z]+ [0-9]+'
+        pattern = '^от [a-z]+ [0-9]+|^от [a-z]+ M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}), [0-9]+'
         if re.search(pattern, answer) != None:#от much 1 и many 1
             answer = answer.replace("от ", "")
             parts = answer.split(" и ")
             parts2 = parts[0].split(" ")
             word_to_search = parts2[0]
-            digit_adress_to_search = parts2[1]+"."
+            if len(parts2) == 3:
+                digit_adress_to_search1 = parts2[1].replace(",", "")
+                digit_adress_to_search2 = parts2[2]  # or it can be 1)
+            else:
+                digit_adress_to_search1 = False
+                digit_adress_to_search2 = parts2[1]  # or it can be 1)
+
             answer2 = self.inner_request_to_dict(word_to_search)
             if answer2 == 'error in inner request':
                 return ""
 
             self.recursion_protection = 0
-            translation = self.parse_answer(answer2, spacy_pos=pos, adress_to_search=digit_adress_to_search)
+            translation = self.parse_answer(answer2, spacy_pos=pos, adress_to_search1=digit_adress_to_search1, adress_to_search2=digit_adress_to_search2)
             return translation
 
         return answer
@@ -521,3 +540,17 @@ class Parser():
                 answer = "error in inner request"
 
         return answer
+
+    def append_round_breakets_to_end(self, word_to_search):
+        word_to_search1 = word_to_search.replace("(", "")
+        word_to_search1 = word_to_search1.replace(")", "")
+        return word_to_search1
+
+    def remove_after_comma(self, translation):
+         comma_pos = translation.find(",")
+         if comma_pos != -1:
+              return translation[:comma_pos]
+         return translation
+
+
+

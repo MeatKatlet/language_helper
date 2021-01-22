@@ -27,12 +27,15 @@ class Translator:
     def translate(self, phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
         doc = self.nlp(phrase)
-        translation_res = ""
-        i = 0
+        #translation_res = ""
+        words_translations = []
+        #i = 0
+        positions_of_translated_words = []
         for token in doc:
             translation = ""
             if token.lemma_ == "-PRON-":
-                translation_res += token.text + " <span>|</span> "
+                #translation_res +=  ""#token.text +
+                continue
 
             elif token.pos_ in self.parser.poses:
                 cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
@@ -42,24 +45,33 @@ class Translator:
                     answer = res.decode("utf-8")
 
                     self.parser.recursion_protection = 0
-                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=phrase, word_index=i)
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=phrase, word_index=token.i)
                     translation = self.parser.resolve_linkanswer(translation, token.pos_)
+                    translation = self.parser.remove_after_comma(translation)
 
                 except Exception as e:
                     return_code = -1  # e.returncode
                     pass
                 finally:
                     if translation == "" or return_code != 0:
-                        translation_res += "/"+token.text+"/ " #"error "
+                        #translation_res += ""#"/"+token.text+"/ "
+                        continue
                     else:
-                        translation_res += translation + " <span>|</span> "
+                        #translation_res += "<span>" + translation + "</span>"
+                        words_translations.append(translation)
+                        positions_of_translated_words.append(token.idx)
 
+            elif token.pos_ == "PUNCT" and token.text == ".":
+                #s = translation_res[:-1]
+                #translation_res = s+". "
+                words_translations.append(".")
             else:
-                translation_res += token.text + " <span>|</span> "
+                #translation_res += ""#token.text +
+                continue
 
-            i += 1
+            #i += 1
 
-        return translation_res
+        return [words_translations, positions_of_translated_words]
 
 
 class Volumemonitor():
@@ -195,8 +207,8 @@ def producer_event(v):
     return json.dumps({"type": "producer_event", "interlocutor_speak": v})
 
 
-def state_event(v, word, replica_index, index):
-    return json.dumps({"type": "state", "value": v, "word": word, "replica_index": replica_index, "index": index})
+def state_event(v, word, positions, replica_index, index):#, q
+    return json.dumps({"type": "state", "value": v, "positions": positions, "word": word, "replica_index": replica_index, "index": index})#, "q": q
 
 
 def service_event(eventtype, v):
@@ -220,12 +232,13 @@ async def translate(websocket, path, data):
 async def consumer_handler(websocket, path):
     # await websocket.send(state_event())
     try:
+
         async for message in websocket:
             data = json.loads(message)
             if data["action"] == "word":
 
-                translation = translator.translate(data["word"])
-                await websocket.send(state_event(translation, data["word"], data["replica_index"], data["index"]))
+                res = translator.translate(data["word"])
+                await websocket.send(state_event(res[0], data["word"], res[1], data["replica_index"], data["index"]))#, data["q"]
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))
@@ -349,8 +362,8 @@ def main():
     # l = subprocess.getstatusoutput("ps aux |grep 'jdictd.jar'|wc -l")
 
     # if l[1] == '3':
-
-    start_server = websockets.serve(handler, "localhost", 6789, ping_interval=20, ping_timeout=20)  #
+    #https://stackoverflow.com/questions/54101923/1006-connection-closed-abnormally-error-with-python-3-7-websockets
+    start_server = websockets.serve(handler, "localhost", 6789, ping_interval=None)  #
     # todo what will be if timeout exceeds? it will reopen connection by itself?
     # under debugger its works infinytly!
     asyncio.get_event_loop().run_until_complete(start_server)

@@ -421,7 +421,19 @@ separate
 .
 250 Command complete 
 221 Closing connection''',
-    "test29": '''''',
+    "test29": '''151 "born" mueller_base "Mueller English-Russian Dictionary (base)": text follows
+born
+
+  [bɔ:n]
+
+    1. _p-p. от bear II, 3
+
+    2. _a. прирождённый; a poet born прирождённый поэт; in all one's born
+    days за всю свою жизнь
+
+.
+250 Command complete
+221 Closing connection''',
     "test30": '''''',
 
     "test1": '''151 "relative" mueller_base "Mueller English-Russian Dictionary (base)": text follows
@@ -792,6 +804,7 @@ def main():
         "test26" : [["PREP","_prep"],["NON","_non"]],
         "test27" : [["NOUN","_n"],["NON","_non"]],
         "test28" : [["ADJ","_a"],["NON","_non"]],
+        "test29" : [["VERB","_v"],["NON","_non"]],
 
 
         "test1" : [["NOUN","_n"],["ADJ","_a"],["NON","_non"]],

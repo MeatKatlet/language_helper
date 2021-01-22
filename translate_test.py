@@ -19,6 +19,23 @@ finally:
 """
 translator = Translator()
 
-res = translator.translate("I would like to talk about")
+#res = translator.translate("I would like to talk about")
+#res = translator.translate("professor of translational genomic")
+#res = translator.translate("I'm a clinical geneticist and professor of translational genomic ")
+#res = translator.translate("geneticist and professor of translational genomic ")
+#res = translator.translate("professor of translational genomic medicine")
+#res = translator.translate("I'm a clinical geneticist and professor of translational genomic medicine at the University of")
+#res = translator.translate("Manchester. ")
+#res = translator.translate("technologies is that we're allowed to")
+#res = translator.translate("clinical geneticists genetic counselors and")
+#res = translator.translate("the laboratory scientists to deliver")
+#res = translator.translate("see patient benefit one of the really")
+#res = translator.translate("really see patient benefit one of the really")
+#res = translator.translate("complex results so that we can really see patient benefit one of the really")
+#res = translator.translate("some babies one in 500 are born with")
+#res = translator.translate("do much more extensive testing.")
+res = translator.translate("some babies one in 500 are born with")
+
+
 a = 1
 
