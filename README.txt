@@ -569,9 +569,9 @@ hello
 #todo integrate medical vocabulary
 #test on video translation
     #todo css for words separators - more convinience
-    #todo css for phrase separators - more convinience
 
-    #todo solve problem in viewing transcription when translation block is very big - transcription goes away upper and I cant see it
+
+    #solve problem in viewing transcription when translation block is very big - transcription goes away upper and I cant see it
     #todo where is some words in the end of transcription ? test it again
     #| . | - delete this!
 
@@ -582,10 +582,10 @@ hello
     #empty spans in translations WHY?
         #test my approach!
 
-    #todo max_index logic  - relative to different replics index!!!!
+    #max_index logic  - relative to different replics index!!!!
 
-    #TODO set html of span only if it was send most later! (because of assynchronious earlier sends can be recieved latest)
-        #test my approach!
+    #set html of span only if it was send most later! (because of assynchronious earlier sends can be recieved latest)
+        #test my approach! - messages in socket recieves through queue
 
 
     #"SCONJ": "_cj" - "that" - error - need to find unteel  next semicolon if in current is ""
@@ -692,13 +692,25 @@ bear
 #todo closing issues - services dont stop
 
 
-#todo questions marks delete from translations
+#questions marks delete from translations
 
-#todo updating of text can be performed while ONMESSAGE operates?  between - start and stop?
+#updating of text can be performed while ONMESSAGE operates?  between - start and stop?
     #measure it - insert console.log - if it appears betwen start and stop then - yes
-#todo calculate brs for the entire text from current updating to the end -
+#calculate brs for the entire text from current updating to the end -
 
 
-#todo - hypothesis - content - is need time to calculate + white space nowrap thats why my code dont managed to capture more later changings
+#hypothesis - content - is need time to calculate + white space nowrap thats why my code dont managed to capture more later changings
+
+#todo innerText == mutation... - delete numbers or store them separetely?
+
+#todo why numbers dont cjange properly
+
+#todo ё й ...
+
+it is need that state of string in the moment of send = state in the moment of recieving!(tests show that updating doesnt happen during execution of onmessage) but after
+sending and before recieving string can be changed!
+if current string in the span != data.word(state when request was sended) => this is not actual data and abort this modification
+
+update  пересчет вперед без запросов на сервер каждый раз когда что то меняется!
 
 

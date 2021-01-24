@@ -552,5 +552,8 @@ class Parser():
               return translation[:comma_pos]
          return translation
 
+    def remove_obsolete_characters(self, s):
+        return re.sub('[^а-яА-Я-: ]', '', s)
+
 
 

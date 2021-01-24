@@ -48,6 +48,7 @@ class Translator:
                     translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=phrase, word_index=token.i)
                     translation = self.parser.resolve_linkanswer(translation, token.pos_)
                     translation = self.parser.remove_after_comma(translation)
+                    translation = self.parser.remove_obsolete_characters(translation)
 
                 except Exception as e:
                     return_code = -1  # e.returncode

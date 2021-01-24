@@ -1,18 +1,29 @@
 function test() {
 
     var spans2 = document.querySelector(".transcription").children;
-    var spans = document.querySelector(".translation").children;
+
+    //var spans = document.querySelector(".translation").children;
     var total = document.querySelector(".translation").children.length;
 
     for (var i=0; i<total; i++) {
-        var span = spans[i].getAttribute("phrase");
-        var span2 = spans2[i].innerText;
+        //var span = spans[i].getAttribute("phrase");
+        var span = phrases_array[i];
+        var l = spans2[i].childNodes.length;
+        var text = "";
+        for (var j=0;j < l;j++) {
+            if (spans2[i].childNodes[j].nodeName==="SPAN") {
+                text += spans2[i].childNodes[j].childNodes[1].nodeValue;
+            } else if (spans2[i].childNodes[j].nodeName==="#text") {
+                text += spans2[i].childNodes[j].nodeValue;
+            }
+        }
+        //var span2 = spans2[i].innerText;
 
-        if (span != span2) {
+        if (span !== text) {
 
             console.log(i);
             console.log(span);
-            console.log(span2);
+            console.log(text);
         }
 
     }
