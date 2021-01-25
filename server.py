@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 from io import StringIO
+import psutil
 
 logging.basicConfig()
 
@@ -122,6 +123,12 @@ class Services_dispatcher:
 
         self.dictionary_process = None
 
+    def kill(self, proc_pid):
+        process = psutil.Process(proc_pid)
+        for proc in process.children(recursive=True):
+            proc.kill()
+        process.kill()
+
     def start_dictionary(self):
         if self.dictionary_runs == False:
             cmd = 'java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.server.JDictd /media/kirill/System/dictserver/Mueller/mueller.ini'
@@ -133,6 +140,7 @@ class Services_dispatcher:
 
     def stop_dictionary(self):
         if self.dictionary_process.poll() is None:
+            self.kill(self.dictionary_process.pid)
             self.dictionary_process.kill()
             self.dictionary_runs = False
             self.dictionary_process = None

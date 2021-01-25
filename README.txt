@@ -689,7 +689,7 @@ bear
 
 -------------------------------------------------------
 
-#todo closing issues - services dont stop
+#closing issues - services dont stop
 
 
 #questions marks delete from translations
@@ -701,7 +701,7 @@ bear
 
 #hypothesis - content - is need time to calculate + white space nowrap thats why my code dont managed to capture more later changings
 
-#todo innerText == mutation... - delete numbers or store them separetely?
+#innerText == mutation... - delete numbers or store them separetely?
 
 #todo why numbers dont cjange properly
 
