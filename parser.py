@@ -553,7 +553,7 @@ class Parser():
          return translation
 
     def remove_obsolete_characters(self, s):
-        return re.sub('[^а-яА-Я-: ]', '', s)
+        return re.sub('[^ёйа-яЁЙА-Я-: ]', '', s)
 
 
 

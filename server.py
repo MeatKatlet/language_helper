@@ -9,6 +9,8 @@ import json
 import logging
 from io import StringIO
 import psutil
+import re
+from Stop_words import Stop_words
 
 logging.basicConfig()
 
@@ -24,14 +26,33 @@ class Translator:
         self.parser = Parser()
         self.nlp = spacy.load("en_core_web_sm")
         self.parser.nlp = self.nlp
+        self.stop_words = Stop_words()
 
-    def translate(self, phrase):
+    def translate(self, phrase, prev_phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
-        doc = self.nlp(phrase)
+
+        striped = prev_phrase.strip()
+        last_char = striped[-1:]
+        words = None
+        l = 0
+        if last_char != "." and striped != "":
+            words = re.split(" |'", prev_phrase)
+            l = len(words)
+            final_phrase = prev_phrase+phrase
+
+        else:
+            final_phrase = phrase
+
+        doc = self.nlp(final_phrase)
         #translation_res = ""
-        words_translations = []
+        words_translations2 = []
+        words_translations1 = []
+
         #i = 0
-        positions_of_translated_words = []
+        positions_of_translated_words2 = []
+        positions_of_translated_words1 = []
+
+
         for token in doc:
             translation = ""
             if token.lemma_ == "-PRON-":
@@ -60,20 +81,24 @@ class Translator:
                         continue
                     else:
                         #translation_res += "<span>" + translation + "</span>"
-                        words_translations.append(translation)
-                        positions_of_translated_words.append(token.idx)
+                        if words is not None and token.i < l:
+                            words_translations1.append(translation)
+                            positions_of_translated_words1.append(token.idx)
+                        else:
+                            words_translations2.append(translation)
+                            positions_of_translated_words2.append(token.idx)
 
             elif token.pos_ == "PUNCT" and token.text == ".":
                 #s = translation_res[:-1]
                 #translation_res = s+". "
-                words_translations.append(".")
+                words_translations2.append(".")
             else:
                 #translation_res += ""#token.text +
                 continue
 
             #i += 1
 
-        return [words_translations, positions_of_translated_words]
+        return [words_translations2, positions_of_translated_words2, words_translations1, positions_of_translated_words1]
 
 
 class Volumemonitor():
@@ -139,11 +164,12 @@ class Services_dispatcher:
         return True
 
     def stop_dictionary(self):
-        if self.dictionary_process.poll() is None:
-            self.kill(self.dictionary_process.pid)
-            self.dictionary_process.kill()
-            self.dictionary_runs = False
-            self.dictionary_process = None
+        if self.dictionary_process is not None:
+            if self.dictionary_process.poll() is None:
+                self.kill(self.dictionary_process.pid)
+                self.dictionary_process.kill()
+                self.dictionary_runs = False
+                self.dictionary_process = None
         return True
 
     def set_pulse_audio(self):
@@ -216,8 +242,8 @@ def producer_event(v):
     return json.dumps({"type": "producer_event", "interlocutor_speak": v})
 
 
-def state_event(v, word, positions, replica_index, index):#, q
-    return json.dumps({"type": "state", "value": v, "positions": positions, "word": word, "replica_index": replica_index, "index": index})#, "q": q
+def state_event(phrase2_translations, raw_phrase2, positions2, phrase1_translations, positions1, raw_phrase1, replica_index, index):#, q
+    return json.dumps({"type": "state", "phrase2_translations": phrase2_translations, "positions2": positions2, "word2": raw_phrase2, "phrase1_translations": phrase1_translations, "positions1": positions1, "word1": raw_phrase1, "replica_index": replica_index, "index": index})#, "q": q
 
 
 def service_event(eventtype, v):
@@ -246,8 +272,8 @@ async def consumer_handler(websocket, path):
             data = json.loads(message)
             if data["action"] == "word":
 
-                res = translator.translate(data["word"])
-                await websocket.send(state_event(res[0], data["word"], res[1], data["replica_index"], data["index"]))#, data["q"]
+                res = translator.translate(data["word"], data["prev_word"])
+                await websocket.send(state_event(res[0], data["word"], res[1], res[2], res[3], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))

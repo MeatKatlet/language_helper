@@ -566,18 +566,16 @@ hello
 #require investors invest period time team name value message email chat call voice morning afternoon evening couple far as paper article
 #would/should
 #remove everything after comma? (нравиться, любить)
-#todo integrate medical vocabulary
+
 #test on video translation
-    #todo css for words separators - more convinience
+    #css for words separators - more convinience
 
 
     #solve problem in viewing transcription when translation block is very big - transcription goes away upper and I cant see it
-    #todo where is some words in the end of transcription ? test it again
+    #where is some words in the end of transcription ? test it again
     #| . | - delete this!
 
-    #todo for each translation phrase input previous last word(from previous phrase) to the beginning of current phrase?
-        #concat first word of current phrase to the END of previous phrase and get new POS for it and translate this last word (if it wasnt translated yet)
-        #concat only not particle words(verb, noun, adj, ...)
+
 
     #empty spans in translations WHY?
         #test my approach!
@@ -704,9 +702,48 @@ bear
 #innerText == mutation... - delete numbers or store them separetely?
 
 #todo why numbers dont cjange properly
+    #test
+todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
 
 #todo ё й ...
+    #test
 
+#todo test zoom, complete code in process dispatcher
+
+#todo for each translation phrase input previous last word(from previous phrase) to the beginning of current phrase?
+        #concat first word of current phrase to the END of previous phrase and get new POS for it and translate this last word (if it wasnt translated yet)
+        #concat only not particle words(verb, noun, adj, ...)
+
+       1. #phrase prev | current phrase(a)
+       2.              | phrase prev (b)   | current phrase
+
+       #1) a raw text == b raw text
+       #a - [[0] [1] [2] [3]]
+       #b - [[0] [1] [] [3]]- delete
+       #b - [[0] [1] [2] [3] [4]] - can add word (POS determination)
+       #b - POS type change? - get more latest POS? and added
+       # [] [] [] [] [] - this can be get from prev?(positions of words)
+            [] [] [] [] [] - get positions of words = positions, extract positions of prev markup
+       #compose
+       #[] [] [] [] [] - already inserted - and markedup.
+
+       #2. is more full information until "." was presented and after - phrase "." prev | current "." phrase
+
+       #2) a raw text != b raw text
+       # more freshest text
+       # orientate by words?
+       # we should substitute all text and markup for on (b)
+       #
+
+    #todo test more simple approach yet! if it fail do more complex
+
+#todo integrate medical vocabulary
+    #where to find it? spacy?
+
+#todo integrate list of stop words
+    #collect all raw notions in list, then lemmatize them through spacy, create python dictionary and check existance by key
+
+#todo show hidden words functionality
 it is need that state of string in the moment of send = state in the moment of recieving!(tests show that updating doesnt happen during execution of onmessage) but after
 sending and before recieving string can be changed!
 if current string in the span != data.word(state when request was sended) => this is not actual data and abort this modification
