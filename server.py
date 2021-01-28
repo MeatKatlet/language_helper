@@ -203,30 +203,19 @@ class Services_dispatcher:
                 return line
         return True
 
-    def check_if_zoom_sink_belongs_to_virtual2(self):
-        #TODO find Zoom appropriate name
-        """
-        sink: 0 <alsa_output.pci-0000_08_00.4.analog-stereo>
-		application.name = "Google Chrome"
-        sink: 0 <alsa_output.pci-0000_08_00.4.analog-stereo>
-            application.name = "Google Chrome"
-        sink: 0 <alsa_output.pci-0000_08_00.4.analog-stereo>
-        client: 711190 <Google Chrome>
-            application.name = "Google Chrome"
-
-        """
-        cmd = "pacmd list-sink-inputs | grep 'sink:\|client: 711190\|application.name = \"Google Chrome\"'"
+    def check_if_zoom_sink_belongs_to_virtual2(self, zoom_sink):
+        #find Zoom appropriate name
+        #cmd = "pacmd list-sink-inputs | grep 'sink:\|client: 711190\|application.name = \"Google Chrome\"'"
+        cmd = "pacmd list-sink-inputs | awk 'x==1 {print $0} /index: "+zoom_sink+"/ {x=1}'"#print all after match line
         res = subprocess.check_output(cmd, shell=True)
         answer = res.decode("utf-8")
         output = StringIO(answer, newline=None)
+        sink_name = ""
         while line := output.readline():
             line = line.strip()
             if line[:4]=="sink":
-                #prev_sink = line.split(" ")[1]
                 sink_name = line[line.find('<') + 1:line.rfind('>')]
-            #elif line[:6]=="client":
-               #client_id = line.split(" ")[1]
-            elif line == 'application.name = "Google Chrome"' and sink_name == 'Virtual2':
+            elif line == 'application.name = "ZOOM VoiceEngine"' and sink_name == 'Virtual2':
                 return True
         return "Set sound to Virtual2 in Zoom settings. If no Virtual2 then restart Zoom"
 
@@ -289,7 +278,7 @@ async def consumer_handler(websocket, path):
                 if res["skype_sink"] != "null":
                     res2 = services_dispatcher.move_skype_sink_to_virtual2()
                 elif res["zoom_sink"] != "null":
-                    res2 = services_dispatcher.check_if_zoom_sink_belongs_to_virtual2()
+                    res2 = services_dispatcher.check_if_zoom_sink_belongs_to_virtual2(res["zoom_sink"])
                 else:
                     res2 = False
 

@@ -708,7 +708,7 @@ todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
 #todo ё й ...
     #test
 
-#todo test zoom, complete code in process dispatcher
+#test zoom, complete code in process dispatcher
 
 #todo for each translation phrase input previous last word(from previous phrase) to the beginning of current phrase?
         #concat first word of current phrase to the END of previous phrase and get new POS for it and translate this last word (if it wasnt translated yet)
