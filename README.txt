@@ -744,10 +744,66 @@ todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
     #collect all raw notions in list, then lemmatize them through spacy, create python dictionary and check existance by key
 
 #todo show hidden words functionality
+#todo error in interfase control_panel
 it is need that state of string in the moment of send = state in the moment of recieving!(tests show that updating doesnt happen during execution of onmessage) but after
 sending and before recieving string can be changed!
 if current string in the span != data.word(state when request was sended) => this is not actual data and abort this modification
 
 update  пересчет вперед без запросов на сервер каждый раз когда что то меняется!
+
+#todo nonblocking markup
+
+async translation_answer_handler
+
+[]starded processing from this
+[]
+[]
+[]**current processing
+[]state1==updated!
+[]state1==updated!
+[]
+state2=updated
+after processing response - if in upper indexes currently processing is happening and current index is < this index then abort this function (upper precessing will do everything down)
+    and no not updatyed indexes between current and upper processing
+    if state2 == not updated - between **current processing and this index => then abort this function down processint too. when upper index will fires up then it will processed everything down
+
+    in upper if any element exist with: (state1==updated and state2==not updated) or **current processing
+        finish current function(only after updating its own data)
+    if during processing we met index with state (state1==updated and state2==not updated)
+        finish further processing(return from function)
+[]
+[]
+[]state2 - not updatyed - stop further processing? and return from function?- this and down will be processed in its own server response
+[]
+[]
+
+sleep upper processing unteel furter down resolves -
+
+
+array_of_spam_states :
+ [index of span] = [
+ state1 : updated by text(not yet server response - no markup, no translation) - set when this index is first touched by modification(each time)
+ state2 : updated by server response(its own markup and appropriate translation words) - after its own updating
+ --------------
+ state3 : allowed to calculate line breaks in down spans/not allowed(already calculated earlier by upper index processing) - if not allowed - then delete this index of span entirely
+            and return from function
+            if allowed then process further spans
+
+                check each time before new span calculation:
+                    if indexes > current (index that we prepairing to process) exists in array_of_spam_states {
+                        set state3 for all indexes for "not allowed" where state3 == updated (its own markup)
+                    }
+
+            after process delete this index of span entirely return from function
+ ]
+ when it passes state3 then it deleted from array
+
+
+ ------------------
+of translational autonomic medicine.
+ autonomic ? strange transaltion
+ ["переводный", " ", "медицина", "."]
+
+
 
 

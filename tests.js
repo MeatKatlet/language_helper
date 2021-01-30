@@ -94,11 +94,17 @@ function proper_translation_markup() {
 
 
             prev_offsettop = transcriptions[i].children[j].offsetTop;
-            prev_offsettop_el_i = i;
+
             //prev_offsettop_el_j = j;
 
 
         }
+        if (span_l===0) {
+            prev_offsettop = transcriptions[i].offsetTop;
+        }
+
+
+        prev_offsettop_el_i = i;
 
     }
 

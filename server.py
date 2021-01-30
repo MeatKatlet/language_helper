@@ -28,7 +28,58 @@ class Translator:
         self.parser.nlp = self.nlp
         self.stop_words = Stop_words()
 
-    def translate(self, phrase, prev_phrase):
+    def translate(self, phrase):
+        # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+        doc = self.nlp(phrase)
+        # translation_res = ""
+        words_translations = []
+        # i = 0
+        positions_of_translated_words = []
+        for token in doc:
+            translation = ""
+            if token.lemma_ == "-PRON-":
+                # translation_res +=  ""#token.text +
+                continue
+
+            elif token.pos_ in self.parser.poses:
+                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+                return_code = 0
+                try:
+                    res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+                    answer = res.decode("utf-8")
+
+                    self.parser.recursion_protection = 0
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_,
+                                                           original_phrase=phrase, word_index=token.i)
+                    translation = self.parser.resolve_linkanswer(translation, token.pos_)
+                    translation = self.parser.remove_after_comma(translation)
+                    translation = self.parser.remove_obsolete_characters(translation)
+
+                except Exception as e:
+                    return_code = -1  # e.returncode
+                    pass
+                finally:
+                    if translation == "" or return_code != 0:
+                        # translation_res += ""#"/"+token.text+"/ "
+                        continue
+                    else:
+                        # translation_res += "<span>" + translation + "</span>"
+                        words_translations.append(translation)
+                        positions_of_translated_words.append(token.idx)
+
+            elif token.pos_ == "PUNCT" and token.text == ".":
+                # s = translation_res[:-1]
+                # translation_res = s+". "
+                words_translations.append(".")
+            else:
+                # translation_res += ""#token.text +
+                continue
+
+            # i += 1
+
+        return [words_translations, positions_of_translated_words]
+
+    def translate2(self, phrase, prev_phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
 
         striped = prev_phrase.strip()
@@ -99,7 +150,6 @@ class Translator:
             #i += 1
 
         return [words_translations2, positions_of_translated_words2, words_translations1, positions_of_translated_words1]
-
 
 class Volumemonitor():
     def __init__(self):
@@ -261,8 +311,10 @@ async def consumer_handler(websocket, path):
             data = json.loads(message)
             if data["action"] == "word":
 
-                res = translator.translate(data["word"], data["prev_word"])
-                await websocket.send(state_event(res[0], data["word"], res[1], res[2], res[3], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
+                #res = translator.translate(data["word"], data["prev_word"])
+                #await websocket.send(state_event(res[0], data["word"], res[1], res[2], res[3], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
+                res = translator.translate(data["word"])
+                await websocket.send(state_event(res[0], data["word"], res[1], [], [], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))
