@@ -12,7 +12,13 @@ function test() {
         var text = "";
         for (var j=0;j < l;j++) {
             if (spans2[i].childNodes[j].nodeName==="SPAN") {
-                text += spans2[i].childNodes[j].childNodes[1].nodeValue;
+                if (spans2[i].childNodes[j].childNodes[1]===undefined) {
+                     text += "";
+                } else {
+                    text += spans2[i].childNodes[j].childNodes[1].nodeValue;
+                }
+
+
             } else if (spans2[i].childNodes[j].nodeName==="#text") {
                 text += spans2[i].childNodes[j].nodeValue;
             }
