@@ -724,6 +724,11 @@ todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
        #b - POS type change? - get more latest POS? and added
        # [] [] [] [] [] - this can be get from prev?(positions of words)
             [] [] [] [] [] - get positions of words = positions, extract positions of prev markup
+
+       # [] [] []
+       #    [] []
+       #       []
+       # [] [] []
        #compose
        #[] [] [] [] [] - already inserted - and markedup.
 
@@ -734,6 +739,40 @@ todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
        # orientate by words?
        # we should substitute all text and markup for on (b)
        #
+       ---------------------
+       delete length/2
+       in left side:
+       TYPE 1 - POS SUBSTITUTE
+       []
+       []
+       => LEAVE POS FROM PREV PHRASE
+        TYPE 2 DELETION
+      []
+      -
+      => LEAVE WORD FROM PREV PHRASE
+      TYPE 3 INSERTION
+      -
+      []
+      => DO NOT insert WORD FROM LAST PHRASE (do nothing)
+
+
+       in right side:
+       TYPE 1 - POS SUBSTITUTE
+       []
+       []
+       => LEAVE POS FROM last PHRASE
+         TYPE 2 DELETION
+      []
+      -
+      => DELETE WORD FROM PREV PHRASE
+       TYPE 3 INSERTION
+      -
+      []
+      => INSERT WORD FROM LAST PHRASE
+
+       -------------------
+       rtrt rtrtr rtrtr rtrtrt - to  the raw prev string - apply all modificatiobs
+       or to some parts - wrap up new span
 
     #todo test more simple approach yet! if it fail do more complex
 
@@ -805,7 +844,9 @@ of translational autonomic medicine.
  ["переводный", " ", "медицина", "."]
 
 
- 1
+ #todo autoscroll stops - why?
+
+ #todo array phrases replica index
 
 
 

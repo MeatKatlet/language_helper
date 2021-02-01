@@ -174,7 +174,7 @@ class Parser():
 
         return res
 
-    def parse_answer(self, answer, spacy_pos="spacy_pos1", origin_word="", adress_to_search1=False, adress_to_search2=False, original_phrase=False, word_index=False):
+    def parse_answer(self, answer, spacy_pos="spacy_pos1", origin_word="", adress_to_search1=False, adress_to_search2=False, original_phrase=False, word_index=False, word_pos=False):
         self.translation = ""
         self.multiline_begins = False
         self.pos_finded_above = False
@@ -485,9 +485,10 @@ class Parser():
             # insert result into original phrase and perform spacy nlp? - then get POS of result and pass it down? or only nlp(result)?
             #
             if original_phrase != False:
-                words = re.split(" |'", original_phrase)  # original_phrase.split(" ") spacy splits also by apostroph  - re.split(" |'" , original_phrase)
-                words[word_index] = result
-                new_phrase = " ".join(words)
+                #words = re.split(" |'", original_phrase)  # original_phrase.split(" ") spacy splits also by apostroph  - re.split(" |'" , original_phrase)
+                #words[word_index] = result
+                new_phrase = original_phrase[:word_pos] + result + original_phrase[word_pos+len(origin_word):]
+                #new_phrase = " ".join(words)
 
                 doc = self.nlp(new_phrase)
                 new_spacy_post = doc[word_index].pos_

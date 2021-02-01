@@ -1,280 +1,16 @@
 #!/media/kirill/System/Users/Kirill/PycharmProjects/dictionary_parser/venv/bin/python3.8
 
-import spacy
-from parser import Parser
 import subprocess
 import websockets
 import asyncio
 import json
 import logging
-from io import StringIO
-import psutil
-import re
-from Stop_words import Stop_words
+from Volumemonitor import Volumemonitor
+from Services_dispatcher import Services_dispatcher
+from Translator import Translator
+from Phrases_dispatcher import Phrases_dispatcher
 
 logging.basicConfig()
-
-"""
-https://spacy.io/usage/spacy-101#features
-https://spacy.io/api/annotation#pos-tagging
-https://universaldependencies.org/u/pos/
-"""
-
-
-class Translator:
-    def __init__(self):
-        self.parser = Parser()
-        self.nlp = spacy.load("en_core_web_sm")
-        self.parser.nlp = self.nlp
-        self.stop_words = Stop_words()
-
-    def translate(self, phrase):
-        # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
-        doc = self.nlp(phrase)
-        # translation_res = ""
-        words_translations = []
-        # i = 0
-        positions_of_translated_words = []
-        for token in doc:
-            translation = ""
-            if token.lemma_ == "-PRON-":
-                # translation_res +=  ""#token.text +
-                continue
-
-            elif token.pos_ in self.parser.poses:
-                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
-                return_code = 0
-                try:
-                    res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-                    answer = res.decode("utf-8")
-
-                    self.parser.recursion_protection = 0
-                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_,
-                                                           original_phrase=phrase, word_index=token.i)
-                    translation = self.parser.resolve_linkanswer(translation, token.pos_)
-                    translation = self.parser.remove_after_comma(translation)
-                    translation = self.parser.remove_obsolete_characters(translation)
-
-                except Exception as e:
-                    return_code = -1  # e.returncode
-                    pass
-                finally:
-                    if translation == "" or return_code != 0:
-                        # translation_res += ""#"/"+token.text+"/ "
-                        continue
-                    else:
-                        # translation_res += "<span>" + translation + "</span>"
-                        words_translations.append(translation)
-                        positions_of_translated_words.append(token.idx)
-
-            elif token.pos_ == "PUNCT" and token.text == ".":
-                # s = translation_res[:-1]
-                # translation_res = s+". "
-                words_translations.append(".")
-            else:
-                # translation_res += ""#token.text +
-                continue
-
-            # i += 1
-
-        return [words_translations, positions_of_translated_words]
-
-    def translate2(self, phrase, prev_phrase):
-        # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
-
-        striped = prev_phrase.strip()
-        last_char = striped[-1:]
-        words = None
-        l = 0
-        if last_char != "." and striped != "":
-            words = re.split(" |'", prev_phrase)
-            l = len(words)
-            final_phrase = prev_phrase+phrase
-
-        else:
-            final_phrase = phrase
-
-        doc = self.nlp(final_phrase)
-        #translation_res = ""
-        words_translations2 = []
-        words_translations1 = []
-
-        #i = 0
-        positions_of_translated_words2 = []
-        positions_of_translated_words1 = []
-
-
-        for token in doc:
-            translation = ""
-            if token.lemma_ == "-PRON-":
-                #translation_res +=  ""#token.text +
-                continue
-
-            elif token.pos_ in self.parser.poses:
-                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
-                return_code = 0
-                try:
-                    res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-                    answer = res.decode("utf-8")
-
-                    self.parser.recursion_protection = 0
-                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=phrase, word_index=token.i)
-                    translation = self.parser.resolve_linkanswer(translation, token.pos_)
-                    translation = self.parser.remove_after_comma(translation)
-                    translation = self.parser.remove_obsolete_characters(translation)
-
-                except Exception as e:
-                    return_code = -1  # e.returncode
-                    pass
-                finally:
-                    if translation == "" or return_code != 0:
-                        #translation_res += ""#"/"+token.text+"/ "
-                        continue
-                    else:
-                        #translation_res += "<span>" + translation + "</span>"
-                        if words is not None and token.i < l:
-                            words_translations1.append(translation)
-                            positions_of_translated_words1.append(token.idx)
-                        else:
-                            words_translations2.append(translation)
-                            positions_of_translated_words2.append(token.idx)
-
-            elif token.pos_ == "PUNCT" and token.text == ".":
-                #s = translation_res[:-1]
-                #translation_res = s+". "
-                words_translations2.append(".")
-            else:
-                #translation_res += ""#token.text +
-                continue
-
-            #i += 1
-
-        return [words_translations2, positions_of_translated_words2, words_translations1, positions_of_translated_words1]
-
-class Volumemonitor():
-    def __init__(self):
-        self.skype_sink_id = self.get_skype_sink_id()
-        self.zoom_sink_id = self.get_zoom_sink_id()
-        #self.one = False
-
-    def get_skype_sink_id(self):
-        cmd = "pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1"
-        res = subprocess.check_output(cmd, shell=True)
-        sink_id = res.decode("utf-8")
-        self.skype_sink_id = sink_id
-        return sink_id
-
-    def get_zoom_sink_id(self):
-        cmd = "pactl list short clients | grep 'zoom' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1"
-        res = subprocess.check_output(cmd, shell=True)
-        sink_id = res.decode("utf-8")
-        self.zoom_sink_id = sink_id
-        return sink_id
-
-    def refind_sink(self):
-        if self.skype_sink_id != 'null':
-            return self.get_skype_sink_id()
-        elif self.zoom_sink_id != 'null':
-            return self.get_zoom_sink_id()
-        else:
-            return False
-
-    def get_active_meeting_soft_sink(self):
-        if self.skype_sink_id != 'null':
-            # self.skype_sink_id = self.get_skype_sink_id()
-            return self.skype_sink_id
-        elif self.zoom_sink_id != 'null':
-            # self.zoom_sink_id = self.get_zoom_sink_id()
-            return self.zoom_sink_id
-        else:
-            return False
-
-
-class Services_dispatcher:
-
-    def __init__(self):
-        self.dictionary_runs = False
-        self.pulse_audio_default = True
-
-        self.dictionary_process = None
-
-    def kill(self, proc_pid):
-        process = psutil.Process(proc_pid)
-        for proc in process.children(recursive=True):
-            proc.kill()
-        process.kill()
-
-    def start_dictionary(self):
-        if self.dictionary_runs == False:
-            cmd = 'java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.server.JDictd /media/kirill/System/dictserver/Mueller/mueller.ini'
-            self.dictionary_process = subprocess.Popen(cmd, shell=True)
-            if self.dictionary_process.poll() is not None:
-                return "dictionary not started"
-        self.dictionary_runs = True
-        return True
-
-    def stop_dictionary(self):
-        if self.dictionary_process is not None:
-            if self.dictionary_process.poll() is None:
-                self.kill(self.dictionary_process.pid)
-                self.dictionary_process.kill()
-                self.dictionary_runs = False
-                self.dictionary_process = None
-        return True
-
-    def set_pulse_audio(self):
-        if self.pulse_audio_default == True:
-            cmd = '/home/kirill/Desktop/pulseaudio/pulseaudio_load_setting.sh'
-            res = subprocess.check_output(cmd, shell=True)
-            answer = res.decode("utf-8")
-            output = StringIO(answer, newline=None)
-            while line := output.readline():
-                if line == "Chrome Google Meet Mic not found. Restart Meet Tab!\n":
-                    return line
-        self.pulse_audio_default = False
-        return True
-
-    def set_pulse_audio_to_default(self):
-        if self.pulse_audio_default == False:
-            cmd = '/home/kirill/Desktop/pulseaudio/pulseaudio_load_deafult.sh'
-            res = subprocess.check_output(cmd, shell=True)
-            answer = res.decode("utf-8")
-        self.pulse_audio_default = True
-        return True
-
-    def move_skype_sink_to_virtual2(self):
-
-        cmd = '/home/kirill/Desktop/pulseaudio/pulseaudio_move_skype_sink_to_virtual2.sh'
-        res = subprocess.check_output(cmd, shell=True)
-        answer = res.decode("utf-8")
-        output = StringIO(answer, newline=None)
-        while line := output.readline():
-            if line == "Skype Speaker not found. Restart Skype or run test call from its settings!\n":
-                return line
-        return True
-
-    def check_if_zoom_sink_belongs_to_virtual2(self, zoom_sink):
-        #find Zoom appropriate name
-        #cmd = "pacmd list-sink-inputs | grep 'sink:\|client: 711190\|application.name = \"Google Chrome\"'"
-        cmd = "pacmd list-sink-inputs | awk 'x==1 {print $0} /index: "+zoom_sink+"/ {x=1}'"#print all after match line
-        res = subprocess.check_output(cmd, shell=True)
-        answer = res.decode("utf-8")
-        output = StringIO(answer, newline=None)
-        sink_name = ""
-        while line := output.readline():
-            line = line.strip()
-            if line[:4]=="sink":
-                sink_name = line[line.find('<') + 1:line.rfind('>')]
-            elif line == 'application.name = "ZOOM VoiceEngine"' and sink_name == 'Virtual2':
-                return True
-        return "Set sound to Virtual2 in Zoom settings. If no Virtual2 then restart Zoom"
-
-
-    def check_that_skype_or_zoom_is_running(self):
-        skype_sink = volume_monitor.get_skype_sink_id()
-        zoom_sink = volume_monitor.get_zoom_sink_id()
-
-        return {"skype_sink": skype_sink, "zoom_sink": zoom_sink}
 
 
 def producer_event(v):
@@ -282,7 +18,20 @@ def producer_event(v):
 
 
 def state_event(phrase2_translations, raw_phrase2, positions2, phrase1_translations, positions1, raw_phrase1, replica_index, index):#, q
-    return json.dumps({"type": "state", "phrase2_translations": phrase2_translations, "positions2": positions2, "word2": raw_phrase2, "phrase1_translations": phrase1_translations, "positions1": positions1, "word1": raw_phrase1, "replica_index": replica_index, "index": index})#, "q": q
+    hash2 = hash(str(phrase2_translations)+str(positions2))
+    hash1 = hash(str(phrase1_translations)+str(positions1))
+    return json.dumps({"type": "state",
+                       "phrase2_translations": phrase2_translations,
+                       "positions2": positions2,
+                       "word2": raw_phrase2,
+                       "phrase1_translations": phrase1_translations,
+                       "positions1": positions1,
+                       "word1": raw_phrase1,
+                       "replica_index": replica_index,
+                       "index": index,
+                       "hash2": hash2,
+                       "hash1": hash1
+                       })
 
 
 def service_event(eventtype, v):
@@ -293,16 +42,6 @@ def error_event(v):
     return json.dumps({"type": "error_or_disconnect_end", "value": v})
 
 
-"""
-async def translate(websocket, path, data):
-    try:
-        translation = translator.translate(data["word"])
-        await websocket.send(state_event(translation, data["word"], data["index"]))
-    finally:
-        await websocket.send(error_event("translate_error"))#notify users about errors!
-"""
-
-
 async def consumer_handler(websocket, path):
     # await websocket.send(state_event())
     try:
@@ -310,11 +49,21 @@ async def consumer_handler(websocket, path):
         async for message in websocket:
             data = json.loads(message)
             if data["action"] == "word":
+                prev = phrases_dispatcher.get_prev_phrase(data["index"] - 1, data["replica_index"])
+                if prev == False or prev[3] != data["prev_word"]:
+                    res = translator.translate2(data["word"], "")
+                else:
+                    res = translator.translate2(data["word"], data["prev_word"])
+                phrases_dispatcher.add_phrase(res[:3]+[data["word"]], data["index"], data["replica_index"])
 
-                #res = translator.translate(data["word"], data["prev_word"])
-                #await websocket.send(state_event(res[0], data["word"], res[1], res[2], res[3], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
-                res = translator.translate(data["word"])
-                await websocket.send(state_event(res[0], data["word"], res[1], [], [], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
+                res2 = [[], []]
+                if len(res[5]) > 0 and data["index"] > 0: #pos1 - if prev phrase not with . in the end
+                    #phrase1_translations, phrase1_positions
+                    res2 = phrases_dispatcher.compare_current_prev_with_previous_word2(data["index"], res[3:], data["replica_index"])
+
+                #get res[0] as in order of adding! - same for the res[1]
+                #https://medium.com/analytics-vidhya/15-things-to-know-to-master-python-dictionaries-56ab7edc3482
+                await websocket.send(state_event(list(res[0].values()), data["word"], list(res[1].values()), res2[0], res2[1], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))
@@ -328,8 +77,10 @@ async def consumer_handler(websocket, path):
                 res = services_dispatcher.check_that_skype_or_zoom_is_running()# automatically starts producer to listen to their voluem if they launched
 
                 if res["skype_sink"] != "null":
+                    phrases_dispatcher.delete_phrases_list()
                     res2 = services_dispatcher.move_skype_sink_to_virtual2()
                 elif res["zoom_sink"] != "null":
+                    phrases_dispatcher.delete_phrases_list()
                     res2 = services_dispatcher.check_if_zoom_sink_belongs_to_virtual2(res["zoom_sink"])
                 else:
                     res2 = False
@@ -338,12 +89,16 @@ async def consumer_handler(websocket, path):
 
             elif data["action"] == "stop_dictionary":
                 res = services_dispatcher.stop_dictionary()
+                phrases_dispatcher.delete_phrases_list()
                 await websocket.send(service_event(data["action"], res))
             elif data["action"] == "init_request":
                 await websocket.send(service_event(data["action"], "ok"))
             else:
                 logging.error("unsupported event: {}", data)
                 print("unsupported event: {}", data)
+    except Exception as e:
+        return_code = -1  # e.returncode
+        pass
     finally:
         if websocket.open:
             await websocket.send(error_event("consumer_handler_error"))  # notify users about errors!
@@ -426,9 +181,10 @@ async def handler(websocket, path):
         task.cancel()
 
 
+phrases_dispatcher = Phrases_dispatcher()
 translator = Translator()
 volume_monitor = Volumemonitor()
-services_dispatcher = Services_dispatcher()
+services_dispatcher = Services_dispatcher(volume_monitor)
 
 
 def main():

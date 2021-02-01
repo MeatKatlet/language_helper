@@ -1,5 +1,5 @@
 function test() {
-
+    var res = [];
     var spans2 = document.querySelector(".transcription").children;
 
     //var spans = document.querySelector(".translation").children;
@@ -24,7 +24,7 @@ function test() {
             }
         }
         //var span2 = spans2[i].innerText;
-
+        //res.push(text);
         if (span !== text) {
 
             console.log(i);
@@ -33,6 +33,7 @@ function test() {
         }
 
     }
+    //console.log(JSON.stringify(res));
 }
 
 function proper_translation_markup() {
