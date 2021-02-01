@@ -38,7 +38,7 @@ class Translator:
 
                     self.parser.recursion_protection = 0
                     translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_,
-                                                           original_phrase=phrase, word_index=token.i)
+                                                           original_phrase=phrase, word_index=token.i, word_pos=token.idx)
                     translation = self.parser.resolve_linkanswer(translation, token.pos_)
                     translation = self.parser.remove_after_comma(translation)
                     translation = self.parser.remove_obsolete_characters(translation)
@@ -58,7 +58,8 @@ class Translator:
             elif token.pos_ == "PUNCT" and token.text == ".":
                 # s = translation_res[:-1]
                 # translation_res = s+". "
-                words_translations.append(".")
+                #words_translations.append(".")
+                continue
             else:
                 # translation_res += ""#token.text +
                 continue

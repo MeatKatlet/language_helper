@@ -8,7 +8,7 @@ import logging
 from Volumemonitor import Volumemonitor
 from Services_dispatcher import Services_dispatcher
 from Translator import Translator
-from Phrases_dispatcher import Phrases_dispatcher
+#from Phrases_dispatcher import Phrases_dispatcher
 
 logging.basicConfig()
 
@@ -17,20 +17,15 @@ def producer_event(v):
     return json.dumps({"type": "producer_event", "interlocutor_speak": v})
 
 
-def state_event(phrase2_translations, raw_phrase2, positions2, phrase1_translations, positions1, raw_phrase1, replica_index, index):#, q
-    hash2 = hash(str(phrase2_translations)+str(positions2))
-    hash1 = hash(str(phrase1_translations)+str(positions1))
+def state_event(phrase2_translations, raw_phrase2, positions2, replica_index, index):#, q
+
     return json.dumps({"type": "state",
                        "phrase2_translations": phrase2_translations,
                        "positions2": positions2,
                        "word2": raw_phrase2,
-                       "phrase1_translations": phrase1_translations,
-                       "positions1": positions1,
-                       "word1": raw_phrase1,
                        "replica_index": replica_index,
                        "index": index,
-                       "hash2": hash2,
-                       "hash1": hash1
+
                        })
 
 
@@ -49,21 +44,10 @@ async def consumer_handler(websocket, path):
         async for message in websocket:
             data = json.loads(message)
             if data["action"] == "word":
-                prev = phrases_dispatcher.get_prev_phrase(data["index"] - 1, data["replica_index"])
-                if prev == False or prev[3] != data["prev_word"]:
-                    res = translator.translate2(data["word"], "")
-                else:
-                    res = translator.translate2(data["word"], data["prev_word"])
-                phrases_dispatcher.add_phrase(res[:3]+[data["word"]], data["index"], data["replica_index"])
 
-                res2 = [[], []]
-                if len(res[5]) > 0 and data["index"] > 0: #pos1 - if prev phrase not with . in the end
-                    #phrase1_translations, phrase1_positions
-                    res2 = phrases_dispatcher.compare_current_prev_with_previous_word2(data["index"], res[3:], data["replica_index"])
+                res = translator.translate(data["word"])
 
-                #get res[0] as in order of adding! - same for the res[1]
-                #https://medium.com/analytics-vidhya/15-things-to-know-to-master-python-dictionaries-56ab7edc3482
-                await websocket.send(state_event(list(res[0].values()), data["word"], list(res[1].values()), res2[0], res2[1], data["prev_word"], data["replica_index"], data["index"]))#, data["q"]
+                await websocket.send(state_event(res[0], data["word"], res[1], data["replica_index"], data["index"]))
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))
@@ -77,10 +61,8 @@ async def consumer_handler(websocket, path):
                 res = services_dispatcher.check_that_skype_or_zoom_is_running()# automatically starts producer to listen to their voluem if they launched
 
                 if res["skype_sink"] != "null":
-                    phrases_dispatcher.delete_phrases_list()
                     res2 = services_dispatcher.move_skype_sink_to_virtual2()
                 elif res["zoom_sink"] != "null":
-                    phrases_dispatcher.delete_phrases_list()
                     res2 = services_dispatcher.check_if_zoom_sink_belongs_to_virtual2(res["zoom_sink"])
                 else:
                     res2 = False
@@ -89,16 +71,15 @@ async def consumer_handler(websocket, path):
 
             elif data["action"] == "stop_dictionary":
                 res = services_dispatcher.stop_dictionary()
-                phrases_dispatcher.delete_phrases_list()
                 await websocket.send(service_event(data["action"], res))
             elif data["action"] == "init_request":
                 await websocket.send(service_event(data["action"], "ok"))
             else:
                 logging.error("unsupported event: {}", data)
                 print("unsupported event: {}", data)
-    except Exception as e:
-        return_code = -1  # e.returncode
-        pass
+    #except Exception as e:
+        #return_code = -1  # e.returncode
+        #pass
     finally:
         if websocket.open:
             await websocket.send(error_event("consumer_handler_error"))  # notify users about errors!
@@ -181,7 +162,6 @@ async def handler(websocket, path):
         task.cancel()
 
 
-phrases_dispatcher = Phrases_dispatcher()
 translator = Translator()
 volume_monitor = Volumemonitor()
 services_dispatcher = Services_dispatcher(volume_monitor)
