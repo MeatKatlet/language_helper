@@ -36,6 +36,13 @@ translator = Translator()
 #res = translator.translate('some babies one in 500 are born with')
 #res = translator.translate('do much more extensive testing.')
 #res = translator.translate('some babies one in 500 are born with')
+data = {}
+data["phrase_prev"] = "My name is Bill Newman. "
+data["phrase_middle"] = "I'm a clinical geneticist and "
+data["phrase_next"] = "professor of translational genomic "
+res = translator.translate_long(data["phrase_prev"], data["phrase_middle"], data["phrase_next"])
+
+exit(0)
 data = {'action': 'word', 'word': 'of translational automated medicine ', 'prev_word': "I'm a chemical Genesis and professor ", 'replica_index': 0, 'index': 7}
 phrases_dispatcher = Phrases_dispatcher()
 #phrases_dispatcher.last_phrases_list = {'0_21': [{3: 'вещь', 7: 'ударять'}, {3: 11, 7: 27}, [-1, -1, -1, 'NOUN', -1, -1, -1, 'VERB', -1]], '0_22': [{1: 'говорить', 3: 'число'}, {1: 3, 3: 17}, [-1, 'VERB', -1, 'NOUN', -1, 'NOUN']], '0_23': [{1: 'сущность', 5: 'чувствовать'}, {1: 3, 5: 24}, [-1, 'NOUN', -1, -1, -1, 'VERB', -1]], '0_24': [{0: 'клинический', 3: 'генетический', 4: 'испытание'}, {0: 0, 3: 22, 4: 30}, ['ADJ', 'NOUN', -1, 'ADJ', 'NOUN']], '0_25': [{1: 'делать', 3: 'жребий', 5: 'другой'}, {1: 6, 3: 14, 5: 22}, [-1, 'VERB', -1, 'NOUN', -1, 'ADJ']], '0_27': [{1: 'клинический', 5: 'путь'}, {1: 3, 5: 29}, [-1, 'ADJ', 'NOUN', -1, -1, 'NOUN']], '0_28': [{1: 'думать', 3: 'совершенно', 4: 'увеличивать'}, {1: 2, 3: 11, 4: 22}, [-1, 'VERB', -1, 'ADV', 'VERB', -1]], '0_26': [{0: 'народ', 3: 'уменьшать', 5: 'роль'}, {0: 0, 3: 16, 5: 31}, ['NOUN', -1, -1, 'VERB', -1, 'NOUN']], '0_29': [{0: 'роль'}, {0: 0}, ['NOUN', -1, 'NOUN']], '0_30': [{1: 'надобность', 5: 'клинический'}, {1: 4, 5: 25}, [-1, 'NOUN', -1, 'NOUN', -1, 'ADJ']], '0_32': [{0: 'работа'}, {0: 0}, ['NOUN']]}

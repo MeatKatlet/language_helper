@@ -17,7 +17,19 @@ def producer_event(v):
     return json.dumps({"type": "producer_event", "interlocutor_speak": v})
 
 
-def state_event(phrase2_translations, raw_phrase2, positions2, replica_index, index):#, q
+def long_phrase_answer(phrase_translations, positions, phrase_prev, phrase_middle, phrase_next, replica_index, index):
+    return json.dumps({"type": "long_phrase_answer",
+                       "phrase_translations": phrase_translations,
+                       "positions": positions,
+                       "phrase_prev": phrase_prev,
+                       "phrase_middle": phrase_middle,
+                       "phrase_next": phrase_next,
+                       "replica_index": replica_index,
+                       "index": index
+                       })
+
+
+def state_event(phrase2_translations, raw_phrase2, positions2, replica_index, index):
 
     return json.dumps({"type": "state",
                        "phrase2_translations": phrase2_translations,
@@ -48,6 +60,18 @@ async def consumer_handler(websocket, path):
                 res = translator.translate(data["word"])
 
                 await websocket.send(state_event(res[0], data["word"], res[1], data["replica_index"], data["index"]))
+
+            elif data["action"] == "long_phrase":
+                res = translator.translate_long(data["phrase_prev"], data["phrase_middle"], data["phrase_next"])
+
+                await websocket.send(long_phrase_answer(
+                    res[0],
+                    res[1],
+                    data["phrase_prev"],
+                    data["phrase_middle"],
+                    data["phrase_next"],
+                    data["replica_index"],
+                    data["index"]))
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))
@@ -77,9 +101,9 @@ async def consumer_handler(websocket, path):
             else:
                 logging.error("unsupported event: {}", data)
                 print("unsupported event: {}", data)
-    #except Exception as e:
-        #return_code = -1  # e.returncode
-        #pass
+    except Exception as e:
+        return_code = -1  # e.returncode
+        pass
     finally:
         if websocket.open:
             await websocket.send(error_event("consumer_handler_error"))  # notify users about errors!

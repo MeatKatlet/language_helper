@@ -68,6 +68,83 @@ class Translator:
 
         return [words_translations, positions_of_translated_words]
 
+    def translate_long(self, phrase_prev, phrase_middle, phrase_next):
+        # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+
+        striped = phrase_prev.strip()
+        last_char = striped[-1:]
+        #prev_phrase_shift = 0
+
+        if last_char == ".":
+            #words = re.split(" |'", prev_phrase.strip())
+            #l = len(words)
+            final_phrase = phrase_middle+phrase_next
+            middle_phrase_l = len(phrase_middle)
+            prev_phrase_l = 0
+            prev_phrase_shift = 0
+        else:
+            prev_phrase_l = len(phrase_prev)
+            middle_phrase_l = prev_phrase_l+len(phrase_middle)
+            final_phrase = phrase_prev + phrase_middle + phrase_next
+            prev_phrase_shift = prev_phrase_l
+
+        doc = self.nlp(final_phrase)
+
+        words_translations = []
+        positions_of_translated_words = []
+
+        middle_phrase_begins = False
+        for token in doc:
+            translation = ""
+            if token.idx == prev_phrase_l:
+                middle_phrase_begins = True
+                #prev_phrase_shift = prev_phrase_l
+            elif token.idx == middle_phrase_l:
+                middle_phrase_begins = False
+                break
+
+
+            if middle_phrase_begins == False:
+                continue
+
+            if token.lemma_ == "-PRON-":
+                continue
+            elif token.pos_ == "PUNCT" and token.text == ".":
+                # . in the middle of prev phrase
+                #second_part_begins = True
+                #prev_phrase_shift = prev_phrase_l - token.idx
+                continue
+            elif token.pos_ in self.parser.poses:
+
+                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+                return_code = 0
+                try:
+                    res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+                    answer = res.decode("utf-8")
+
+                    self.parser.recursion_protection = 0
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=final_phrase, word_index=token.i, word_pos=token.idx)
+                    translation = self.parser.resolve_linkanswer(translation, token.pos_)
+                    translation = self.parser.remove_after_comma(translation)
+                    translation = self.parser.remove_obsolete_characters(translation)
+
+                except Exception as e:
+                    return_code = -1  # e.returncode
+                    pass
+                finally:
+                    if translation == "" or return_code != 0:
+                        #translation_res += ""#"/"+token.text+"/ "
+                        continue
+                    else:
+                        #translation_res += "<span>" + translation + "</span>"
+
+                        words_translations.append(translation)
+                        positions_of_translated_words.append(token.idx-prev_phrase_shift)# total position in phrase
+            else:
+                continue
+
+        return [words_translations, positions_of_translated_words]
+
     def translate2(self, phrase, prev_phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
 

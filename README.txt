@@ -848,6 +848,14 @@ of translational autonomic medicine.
 
  #todo array phrases replica index
 
+ [] [] []
+          [] [] []
 
+phrase_middle: "they won't develop hearing loss when "
+phrase_next: "when it can, be avoided, genetics is "
+phrase_prev: "which antibiotics they should get. "
 
+0_99: "which antibiotics they should get. "
+0_100: "So they won't develop hearing loss "
+0_101: "when it can, be avoided, genetics is "
 
