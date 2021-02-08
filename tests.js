@@ -118,3 +118,121 @@ function proper_translation_markup() {
 
 }
 
+function print_story() {
+    var pure = function (phrase) {
+        var str = phrase.trim();
+        str = str.replace(/[^a-z ]/gi, '').toLowerCase();
+
+        return str;
+
+    }
+
+    var get_rid_of_markup = function (span) {
+        var l = span.childNodes.length;
+        var text = "";
+        for (var j=0;j < l;j++) {
+            if (span.childNodes[j].nodeName==="SPAN") {
+                if (span.childNodes[j].childNodes[1]===undefined) {
+                     text += "";
+                } else {
+                    text += span.childNodes[j].childNodes[1].nodeValue;
+                }
+
+
+            } else if (span.childNodes[j].nodeName==="#text") {
+                text += span.childNodes[j].nodeValue;
+            }
+        }
+        return text;
+    }
+    console.log("start");
+    var prev = [0,"0_0"];
+    //var ind = 0;
+    var real_text;
+    var prev_middle_sended_index=1;
+    var spans_what_we_see = document.querySelector(".transcription").children;
+    var spans_raw = unblocked_html;
+
+    for (var i = 0; i < story.length; i++) {
+        if (story[i][2]===undefined) {
+            prev = story[i];
+            continue;
+        } else if (i >0) {
+
+            var p = story[i][1].split("_");
+            var p2 = prev[1].split("_");
+            /*if ((parseInt(p[1])+4)-story[i][0]!==1) {
+                console.log((parseInt(p[1])+4)+"_"+story[i][0]);
+            }*/
+            if (p[1]-prev_middle_sended_index > 1) {
+                console.log("increment "+i);
+            }
+            if (p[1]-p2[1] === 1) {
+                if (pure(story[i][2]) === pure(prev[3]) && pure(story[i][3]) === pure(prev[4])) {
+                    if (pure(story[i][3]) === pure(spans_raw["0_"+p[1]])) {
+
+                    } else {
+                        console.log("not equal raw text with what was sended: "+i+" "+p[1]+" "+spans_raw["0_"+p[1]]);
+                    }
+
+                    real_text = get_rid_of_markup(spans_what_we_see[p[1]]);
+                    if (pure(real_text) === pure(story[i][3])) {
+
+                    } else {
+                        console.log("not equal real text with what was sended: "+i+" "+p[1]+" "+real_text);
+                    }
+
+                    if (pure(real_text) === pure(spans_raw["0_"+p[1]])) {
+
+                    } else {
+                        console.log("not equal real text with raw text:"+i+" "+p[1]+" "+real_text+" : "+spans_raw["0_"+p[1]]);
+                    }
+
+
+                    /*if (pure(spans["0_"+p[1]].innerText) === pure(story[i][3])) {
+
+                    } else {
+                        console.log("not equal "+i+" "+p[1]+" "+spans["0_"+p[1]].innerText);
+                    }*/
+                } else {
+                    console.log("error "+i);
+                }
+                //ind++;
+            } else {
+                //console.log("error "+i);
+                //check
+                //ind = parseInt(p[1])-1;
+                if (pure(story[i][3]) === pure(spans_raw["0_"+p[1]])) {
+
+                } else {
+                    console.log("not equal raw text with what was sended: "+i+" "+p[1]+" "+spans_raw["0_"+p[1]]);
+                }
+
+                real_text = get_rid_of_markup(spans_what_we_see[p[1]]);
+                if (pure(real_text) === pure(story[i][3])) {
+
+                } else {
+                    console.log("not equal real text with what was sended: "+i+" "+p[1]+" "+real_text);
+                }
+
+                if (pure(real_text) === pure(spans_raw["0_"+p[1]])) {
+
+                } else {
+                    console.log("not equal real text with raw text:"+i+" "+p[1]+" "+real_text+" : "+spans_raw["0_"+p[1]]);
+                }
+                /*if (pure(spans["0_"+p[1]].innerText) === pure(story[i][3])) {
+
+                } else {
+                    console.log("not equal2 "+i+" "+p[1]+" "+spans["0_"+p[1]].innerText);
+                }*/
+                //ind += (p[1]-p2[1]);
+            }
+
+
+            prev_middle_sended_index = p[1];
+        }
+
+        prev = story[i];
+    }
+}
+
