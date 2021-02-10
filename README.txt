@@ -1259,3 +1259,51 @@ word1|word2|word3|-    |word4|word5
 word1|word2|word3|-    |word4|word5|-
 -    |word2|word3|word7|word4|word6|word8
 -    |=    |=    |-    |=    |!    |-
+
+summary: Array(10)
+0: "-"
+1: "="
+2: "-"
+3: "="
+4: "="
+5: "="
+6: "="
+7: "="
+8: "-"
+9: "-"
+
+that|were|allowed|to|do|much|more|extensive|testing
+ -  |-   |-      |- |- |much|more|extensive|testing
+-   |-   |-      |- |- |=   |=   |=        |=
+
+risks|are|really|very|high|completely|comparable|to|the|risks|that|you|-
+-    |-  |-     |-   |-   |-         |comparable|to|the|risk |that|you|would
+-    |-  |-     |-   |-   |-         |=         |= |=  |!    |=   |=  |-
+
+
+risks|are|really|very|high|completely|comparable|to|the|risks|that|you|-
+-    |-  |-     |-   |-   |-         |comparable|to|the|risk |that|you|would
+-    |-  |-     |-   |-   |-         |=         |= |=  |!    |=   |=  |-
+
+
+risks|are|really|very|high|completely|comparable|to|the|risks|that|you|-
+-    |-  |-     |-   |-   |-         |comparable|to|the|risk |that|you|would
+-    |-  |-     |-   |-   |-         |=         |= |=  |!    |=   |=  |-
+
+
+which|antibiotics|that|they|should|get|so|they|won't|develop|hearing
+-    |-          |-   |-   |-     |get|- |-   |-    |-      |-
+-    |-          |-   |-   |-     |=  |- |-   |-    |-      |-
+
+word1|word2|word3|word4|
+ -   |-    |word3|word4|-
+ -   |-    |=    |=    |-
+
+with|some|of|the|new|technologies|is|that|we're|allowed|to|do|much|more|-        |-
+-   |-   |- |-  |-  |-           |- |-   |-    |-      |- |- |-   |-   |extensive|testing
+ -  |-   |- |-  |-  |-           |- |-   |-    |-      |- |- |-   |-   |-        |-
+
+ -        |diminishes|the|role|of|clinical|genetics|in|some|ways|i|think|it
+absolutely|enhances  |the|role|of|-       |-       |- |-   |-   |-|-    |-
+-         |!         |=  |=   |= |-       |-       |-|-    |-   |-|-    |-
+
