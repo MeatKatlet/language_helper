@@ -285,12 +285,14 @@ function new_test() {
         var text = pure(unblocked_html[key]);
         final_text += text;
     }
+    final_text = final_text.replace(/\s{2,}/gi, ' ');
     //final_text = final_text.replace(/'[a-z]+ /gi," ");
     myhtml_result = "";
     spans_what_we_see = document.querySelector(".transcription").children;
     for (var j = 0; j < spans_what_we_see.length; j++) {
         myhtml_result += pure(get_rid_of_markup(spans_what_we_see[j]));
     }
+    myhtml_result = myhtml_result.replace(/\s{2,}/gi, ' ');
     //myhtml_result = myhtml_result.replace(/'[a-z]+ /gi," ");
     prev_middle_sended_index=1;
     var from = 0;
@@ -310,7 +312,10 @@ function new_test() {
             from = compare(sended_chunk,from , i);
         }
         sended_chunk = pure(story[i][3]);
-        from = compare(sended_chunk,from , i);
+        if (sended_chunk!==" ") {
+            from = compare(sended_chunk,from , i);
+        }
+
 
         if (i>0) {
             if (p[1]-p2[1] === 1) {

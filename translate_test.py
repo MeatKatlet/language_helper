@@ -37,9 +37,9 @@ translator = Translator()
 #res = translator.translate('do much more extensive testing.')
 #res = translator.translate('some babies one in 500 are born with')
 data = {}
-data["phrase_prev"] = "My name is Bill Newman. "
-data["phrase_middle"] = "I'm a clinical geneticist and "
-data["phrase_next"] = "professor of translational genomic "
+data["phrase_prev"] = "applied in that setting, particularly "
+data["phrase_middle"] = "for that very "
+data["phrase_next"] = "High risk group where we need to "
 res = translator.translate_long(data["phrase_prev"], data["phrase_middle"], data["phrase_next"])
 
 exit(0)

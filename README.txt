@@ -701,16 +701,16 @@ bear
 
 #innerText == mutation... - delete numbers or store them separetely?
 
-#todo why numbers dont cjange properly
+why numbers dont cjange properly
     #test
-todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
+number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
 
 #todo ё й ...
     #test
 
 #test zoom, complete code in process dispatcher
 
-#todo for each translation phrase input previous last word(from previous phrase) to the beginning of current phrase?
+for each translation phrase input previous last word(from previous phrase) to the beginning of current phrase?
         #concat first word of current phrase to the END of previous phrase and get new POS for it and translate this last word (if it wasnt translated yet)
         #concat only not particle words(verb, noun, adj, ...)
 
@@ -774,23 +774,44 @@ todo number of lines in GUI - LEFT + MIDDLE + STICK TO LINES OF TEXT
        rtrt rtrtr rtrtr rtrtrt - to  the raw prev string - apply all modificatiobs
        or to some parts - wrap up new span
 
-    #todo test more simple approach yet! if it fail do more complex
+test more simple approach yet! if it fail do more complex
 
 #todo integrate medical vocabulary
     #where to find it? spacy?
 
-#todo integrate list of stop words
-    #collect all raw notions in list, then lemmatize them through spacy, create python dictionary and check existance by key
 
-#todo show hidden words functionality
-#todo error in interfase control_panel
+error in interfase control_panel
 it is need that state of string in the moment of send = state in the moment of recieving!(tests show that updating doesnt happen during execution of onmessage) but after
 sending and before recieving string can be changed!
 if current string in the span != data.word(state when request was sended) => this is not actual data and abort this modification
 
 update  пересчет вперед без запросов на сервер каждый раз когда что то меняется!
 
-#todo nonblocking markup
+nonblocking markup
+
+#todo autoscroll stops - why? [4]
+
+#todo replica index dynamic changing accounting everywhere [1]
+
+#todo test replic changing [2]
+
+#todo memory management [3]
+    phrases_array
+    already_sended
+    for_restored_phrases
+
+#todo integrate list of stop words [5]
+    #collect all raw notions in list, then lemmatize them through spacy, create python dictionary and check existance by key
+
+#todo show hidden words functionality [6]
+
+#todo - do not translate one word several times in one line
+    #server part? - cash per each line? -
+    #client - during construction of translation span - check repeats in other spans in that line(before that?) or keep in memory array of already inserted words and check in every time
+
+
+transaltion for 0 span
+ "" - transaltion ?
 
 async translation_answer_handler
 
@@ -842,11 +863,6 @@ array_of_spam_states :
 of translational autonomic medicine.
  autonomic ? strange transaltion
  ["переводный", " ", "медицина", "."]
-
-
- #todo autoscroll stops - why?
-
- #todo array phrases replica index
 
  [] [] []
           [] [] []

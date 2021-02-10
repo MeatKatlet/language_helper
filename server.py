@@ -18,15 +18,29 @@ def producer_event(v):
 
 
 def long_phrase_answer(phrase_translations, positions, phrase_prev, phrase_middle, phrase_next, replica_index, index):
-    return json.dumps({"type": "long_phrase_answer",
-                       "phrase_translations": phrase_translations,
-                       "positions": positions,
-                       "phrase_prev": phrase_prev,
-                       "phrase_middle": phrase_middle,
-                       "phrase_next": phrase_next,
-                       "replica_index": replica_index,
-                       "index": index
-                       })
+
+    if index == 1:
+        return json.dumps({"type": "long_phrase_answer",
+                           "phrase_translations": phrase_translations[1],
+                           "positions": positions[1],
+                           "zero_translations": phrase_translations[0],
+                           "zero_positions": positions[0],
+                           "phrase_prev": phrase_prev,
+                           "phrase_middle": phrase_middle,
+                           "phrase_next": phrase_next,
+                           "replica_index": replica_index,
+                           "index": index
+                           })
+    else:
+        return json.dumps({"type": "long_phrase_answer",
+                           "phrase_translations": phrase_translations,
+                           "positions": positions,
+                           "phrase_prev": phrase_prev,
+                           "phrase_middle": phrase_middle,
+                           "phrase_next": phrase_next,
+                           "replica_index": replica_index,
+                           "index": index
+                           })
 
 
 def state_event(phrase2_translations, raw_phrase2, positions2, replica_index, index):
@@ -62,7 +76,14 @@ async def consumer_handler(websocket, path):
                 await websocket.send(state_event(res[0], data["word"], res[1], data["replica_index"], data["index"]))
 
             elif data["action"] == "long_phrase":
-                res = translator.translate_long(data["phrase_prev"], data["phrase_middle"], data["phrase_next"])
+                if data["index"] == 1:
+                    res1 = translator.translate_long("", data["phrase_prev"], data["phrase_middle"])
+                    res2 = translator.translate_long(data["phrase_prev"], data["phrase_middle"], data["phrase_next"])
+                    res = [[res1[0], res2[0]], [res1[1], res2[1]]]
+                    #[words_translations, positions_of_translated_words]
+                    #[words_translations, positions_of_translated_words]
+                else:
+                    res = translator.translate_long(data["phrase_prev"], data["phrase_middle"], data["phrase_next"])
 
                 await websocket.send(long_phrase_answer(
                     res[0],
@@ -72,6 +93,7 @@ async def consumer_handler(websocket, path):
                     data["phrase_next"],
                     data["replica_index"],
                     data["index"]))
+
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()
                 await websocket.send(service_event(data["action"], res))
