@@ -37,84 +37,98 @@ function test() {
 }
 
 function proper_translation_markup() {
-    var transcriptions = document.querySelector(".transcription").children;
-    var translations = document.querySelector(".translation").children;
-
-    var prev_offsettop = 0;
-    var words_in_line = 0;
-    //var translations_in_line = 0;
-    var br_count = 0;
-    //var index_for_translations = 0;
+    //var transcriptions = document.querySelector(".transcription").children;
+    //var translations = document.querySelector(".translation").children;
     var prev_offsettop_el_i = 0;
     var line = 1;
-    var prev_tr_element = null;
+    var prev_offsettop = 0;
+    var words_in_line = 0;
+    var transcriptions = document.querySelectorAll(".transcription");
+    var translations = document.querySelectorAll(".translation");
+
+
+    //var translations_in_line = 0;
+    //var br_count = 0;
+    //var index_for_translations = 0;
+
+    //var prev_tr_element = null;
     for (var i=0; i < transcriptions.length; i++) {
-        var span_l = transcriptions[i].children.length;
+        console.log("replic index: "+i);
+        prev_offsettop_el_i = 0;
+        line = 1;
+        prev_offsettop = 0;
+        words_in_line = 0;
 
-        var spansonly = [].filter.call(translations[i].children, function(el) {
-				return el.nodeName === "SPAN";
-			});
-        if (spansonly.length !== span_l) {
-            console.log("error in line "+line+" "+i+" "+j);
-            return;
-        }
+        for (var z=0; z < transcriptions[i].children.length;z++) {//spans
 
-        for (var j=0; j<span_l; j++) {
+            var span_l = transcriptions[i].children[z].children.length;
 
-            if (transcriptions[i].children[j].offsetTop > prev_offsettop) {
-                if (spansonly[j].previousElementSibling !== null) {
-                    if (spansonly[j].previousElementSibling.nodeName === "BR") {
-
-                    }
-                    else {
-                        console.log("error in line "+line+" "+i+" "+j);
-                        return;
-                    }
-                } else {
-                    //предыдущий спан с меньшим offset top
-
-                    if (translations[prev_offsettop_el_i].children.length ===0) {
-                        console.log("error in line "+line+" "+i+" "+j);
-                        return;
-                    }
-                    var lastind = translations[prev_offsettop_el_i].children.length-1;
-
-                    if (translations[prev_offsettop_el_i].children[lastind].nodeName === "BR") {
-
-                    }
-                    else {
-                        console.log("error in line "+line+" "+i+" "+j);
-                        return;
-                    }
-
-
-
-                }
-
-                words_in_line = 0;
-                line++;
+            var spansonly = [].filter.call(translations[i].children[z].children, function (el) {
+                return el.nodeName === "SPAN";
+            });
+            if (spansonly.length !== span_l) {
+                console.log("error in line " + line + " " + i + " " + j);
+                return;
             }
 
-            words_in_line++;
+            for (var j = 0; j < span_l; j++) {
 
-            //translations_in_line++;
+                if (transcriptions[i].children[z].children[j].offsetTop > prev_offsettop) {
+                    if (spansonly[j].previousElementSibling !== null) {
+                        if (spansonly[j].previousElementSibling.nodeName === "BR") {
+
+                        } else {
+                            console.log("error in line " + line + " " + z + " " + j);
+                            return;
+                        }
+                    } else {
+                        //предыдущий спан с меньшим offset top
+
+                        if (translations[i].children[prev_offsettop_el_i].children.length === 0) {
+                            console.log("error in line " + line + " " + z + " " + j);
+                            return;
+                        }
+                        var lastind = translations[i].children[prev_offsettop_el_i].children.length - 1;
+
+                        if (translations[i].children[prev_offsettop_el_i].children[lastind].nodeName === "BR"
+                            //||
+                            //(translations[i].children[prev_offsettop_el_i].nextElementSibling!==null &&
+                           // translations[i].children[prev_offsettop_el_i].nextElementSibling.children[0].nodeName)
+                        )  {
+
+                        } else {
+                            console.log("error in line " + line + " " + z + " " + j);
+                            return;
+                        }
 
 
-            prev_offsettop = transcriptions[i].children[j].offsetTop;
+                    }
 
-            //prev_offsettop_el_j = j;
+                    words_in_line = 0;
+                    line++;
+                }
 
+                words_in_line++;
+
+                //translations_in_line++;
+
+
+                prev_offsettop = transcriptions[i].children[z].children[j].offsetTop;
+
+                //prev_offsettop_el_j = j;
+
+
+            }
+            if (span_l === 0) {
+                prev_offsettop = transcriptions[i].children[z].offsetTop;
+            }
+
+
+            prev_offsettop_el_i = z;
 
         }
-        if (span_l===0) {
-            prev_offsettop = transcriptions[i].offsetTop;
-        }
-
-
-        prev_offsettop_el_i = i;
 
     }
-
 
 }
 

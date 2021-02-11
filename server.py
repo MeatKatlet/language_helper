@@ -145,7 +145,7 @@ async def producer():
     # word |(measure average value) if it stops saying then
     # or run it completly independently in the loop and constantly measure volueme
     # SINK=$(pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1)
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
     #   # if use time.sleep(3)  then producer will not allow for consumer_handler to recieve messages
     sink = volume_monitor.get_active_meeting_soft_sink()  # every skype call change it sink! so maybe zoom too? but browser contiunue to recieve on old sink!
     if sink != False:

@@ -789,11 +789,16 @@ update  пересчет вперед без запросов на сервер 
 
 nonblocking markup
 
-#todo autoscroll stops - why? [4]
+#todo change height of window
+#todo autoscroll stops - why? [4] - figure out first - why it breaks!
+    test 2 modes
 
-#todo replica index dynamic changing accounting everywhere [1]
+replica index dynamic changing accounting everywhere [1]
+    changing everytime
 
-#todo test replic changing [2]
+test replic changing [2]
+#todo trigger transaltion of remain part of replic when new replic is created
+
 
 #todo memory management [3]
     phrases_array
@@ -809,6 +814,8 @@ nonblocking markup
     #server part? - cash per each line? -
     #client - during construction of translation span - check repeats in other spans in that line(before that?) or keep in memory array of already inserted words and check in every time
 
+#test in skype active call(with blocking microphone)
+#test in zoom active call(with blocking microphone)
 
 transaltion for 0 span
  "" - transaltion ?
