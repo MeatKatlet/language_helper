@@ -145,6 +145,81 @@ class Translator:
 
         return [words_translations, positions_of_translated_words]
 
+    def translate_after_speach_pause(self, last_phrases):
+
+        final_text = ""
+
+        words_translations = {}
+        positions_of_translated_words = {}
+        phrases_lengths = []
+
+        keys = sorted(last_phrases)
+        for key in keys:
+            words_translations[key] = []
+            positions_of_translated_words[key] = []
+            phrases_lengths.append(len(last_phrases[key]))
+
+            final_text += last_phrases[key]
+
+        del words_translations[keys[0]]
+        del positions_of_translated_words[keys[0]]
+
+        #first phrase was already sended as middle
+
+        doc = self.nlp(final_text)
+        middle_phrase_begins = False
+
+        i = 0
+        total_shift = 0
+        for token in doc:
+            translation = ""
+            if token.idx == phrases_lengths[i]:
+                total_shift += phrases_lengths[i]
+                if i == 0:
+                    middle_phrase_begins = True
+                i += 1
+
+            if middle_phrase_begins == False:
+                continue
+
+            if token.lemma_ == "-PRON-":
+                continue
+            elif token.pos_ == "PUNCT" and token.text == ".":
+                # . in the middle of prev phrase
+                # second_part_begins = True
+                # prev_phrase_shift = prev_phrase_l - token.idx
+                continue
+            elif token.pos_ in self.parser.poses:
+
+                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+                return_code = 0
+                try:
+                    res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+                    answer = res.decode("utf-8")
+
+                    self.parser.recursion_protection = 0
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_,
+                                                           original_phrase=final_text, word_index=token.i,
+                                                           word_pos=token.idx)
+                    translation = self.parser.resolve_linkanswer(translation, token.pos_)
+                    translation = self.parser.remove_after_comma(translation)
+                    translation = self.parser.remove_obsolete_characters(translation)
+
+                except Exception as e:
+                    return_code = -1  # e.returncode
+                    pass
+                finally:
+                    if translation == "" or return_code != 0:
+                        continue
+                    else:
+                        words_translations[keys[i]].append(translation)
+                        positions_of_translated_words[keys[i]].append(token.idx - total_shift)
+
+            else:
+                continue
+
+        return [words_translations, positions_of_translated_words]
+
     def translate2(self, phrase, prev_phrase):
         # doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
 

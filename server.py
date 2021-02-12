@@ -43,8 +43,16 @@ def long_phrase_answer(phrase_translations, positions, phrase_prev, phrase_middl
                            })
 
 
-def state_event(phrase2_translations, raw_phrase2, positions2, replica_index, index):
+def after_speach_pause_answer(phrases_translations, positions, replica_index):
+    return json.dumps({
+        "type": "speach_pause",
+        "phrases_translations": phrases_translations,
+        "positions": positions,
+        "replica_index": replica_index,
+    })
 
+
+def state_event(phrase2_translations, raw_phrase2, positions2, replica_index, index):
     return json.dumps({"type": "state",
                        "phrase2_translations": phrase2_translations,
                        "positions2": positions2,
@@ -93,6 +101,10 @@ async def consumer_handler(websocket, path):
                     data["phrase_next"],
                     data["replica_index"],
                     data["index"]))
+
+            elif data["action"] == "speach_pause":
+                res = translator.translate_after_speach_pause(data["text"])
+                await websocket.send(after_speach_pause_answer(res[0], res[1], data["replica_index"]))
 
             elif data["action"] == "pulseaudioinit":
                 res = services_dispatcher.set_pulse_audio()

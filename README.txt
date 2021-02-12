@@ -789,8 +789,9 @@ update  пересчет вперед без запросов на сервер 
 
 nonblocking markup
 
-#todo change height of window
-#todo autoscroll stops - why? [4] - figure out first - why it breaks!
+test autoscroll in 2 mode
+change height of window
+autoscroll stops - why? [4] - figure out first - why it breaks!
     test 2 modes
 
 replica index dynamic changing accounting everywhere [1]
@@ -809,6 +810,8 @@ test replic changing [2]
     #collect all raw notions in list, then lemmatize them through spacy, create python dictionary and check existance by key
 
 #todo show hidden words functionality [6]
+
+#todo create desctop shortcut for python server start! - test all without pycharm
 
 #todo - do not translate one word several times in one line
     #server part? - cash per each line? -
