@@ -13,7 +13,7 @@ class Translator:
         self.parser = Parser()
         self.nlp = spacy.load("en_core_web_sm")
         self.parser.nlp = self.nlp
-        self.stop_words = Stop_words()
+        self.stop_words = Stop_words.stop_words
         #self.phrases_dispatcher = phrases_dispatcher
 
     def translate(self, phrase):
@@ -29,7 +29,7 @@ class Translator:
                 # translation_res +=  ""#token.text +
                 continue
 
-            elif token.pos_ in self.parser.poses:
+            elif token.pos_ in self.parser.poses and token.lemma_ not in self.stop_words:
                 cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
                 return_code = 0
                 try:
@@ -114,7 +114,7 @@ class Translator:
                 #second_part_begins = True
                 #prev_phrase_shift = prev_phrase_l - token.idx
                 continue
-            elif token.pos_ in self.parser.poses:
+            elif token.pos_ in self.parser.poses and token.lemma_ not in self.stop_words:
 
                 cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
                 return_code = 0
@@ -153,29 +153,36 @@ class Translator:
         positions_of_translated_words = {}
         phrases_lengths = []
 
-        keys = sorted(last_phrases)
+        keys = sorted(last_phrases, key=lambda item: int(item))
+        total_length = 0
         for key in keys:
             words_translations[key] = []
             positions_of_translated_words[key] = []
-            phrases_lengths.append(len(last_phrases[key]))
+            total_length += len(last_phrases[key])
+            phrases_lengths.append(total_length)
 
             final_text += last_phrases[key]
 
-        del words_translations[keys[0]]
-        del positions_of_translated_words[keys[0]]
+        if keys[0] != '0':
+            del words_translations[keys[0]]
+            del positions_of_translated_words[keys[0]]
+            i = 0
+        else:
+            i = -1
+            phrases_lengths[i] = 0
 
         #first phrase was already sended as middle
 
         doc = self.nlp(final_text)
         middle_phrase_begins = False
 
-        i = 0
+
         total_shift = 0
         for token in doc:
             translation = ""
             if token.idx == phrases_lengths[i]:
-                total_shift += phrases_lengths[i]
-                if i == 0:
+                total_shift = phrases_lengths[i]
+                if i == 0 or i == -1:
                     middle_phrase_begins = True
                 i += 1
 
@@ -189,7 +196,7 @@ class Translator:
                 # second_part_begins = True
                 # prev_phrase_shift = prev_phrase_l - token.idx
                 continue
-            elif token.pos_ in self.parser.poses:
+            elif token.pos_ in self.parser.poses and token.lemma_ not in self.stop_words:
 
                 cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
                 return_code = 0
@@ -269,7 +276,7 @@ class Translator:
                     pos2.append(-1)
                 continue
 
-            elif token.pos_ in self.parser.poses:
+            elif token.pos_ in self.parser.poses and token.lemma_ not in self.stop_words:
                 if second_part_begins == False:
                     pos1.append(token.pos_)
                 else:

@@ -37,6 +37,11 @@ translator = Translator()
 #res = translator.translate('do much more extensive testing.')
 #res = translator.translate('some babies one in 500 are born with')
 data = {}
+data["text"] = {'5': 'I started in clinical, genetics ', '0': 'nearly 25 years ago. ', '7': 'We ', '8': 'able to do genetic testing for a very ', '9': 'small. ', '10': 'Number of inherited conditions. ', '11': 'We '}
+#data["text"] = {'4': 'Manchester by started, in clinical, ', '5': 'genetics, nearly 25 years ago. ', '6': 'And at that time, we were really only ', '7': 'able to do genetic testing for a very ', '8': 'small number of inherited conditions. '}
+res = translator.translate_after_speach_pause(data["text"])
+exit(0)
+data = {}
 data["phrase_prev"] = "applied in that setting, particularly "
 data["phrase_middle"] = "for that very "
 data["phrase_next"] = "High risk group where we need to "

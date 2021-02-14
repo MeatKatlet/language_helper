@@ -799,14 +799,21 @@ replica index dynamic changing accounting everywhere [1]
 
 test replic changing [2]
 #todo trigger transaltion of remain part of replic when new replic is created
+    need to test it!
+    test it if pause happened on replic with no translations yet - translate everything from 0 to end! - done
 
 
-#todo memory management [3]
+
+#memory management [3]
     phrases_array
     already_sended
     for_restored_phrases
+    -----
+    delete all from 0 to -20 from last element?
 
-#todo integrate list of stop words [5]
+    + collect and check all global variables in initiation functions!
+
+integrate list of stop words [5]
     #collect all raw notions in list, then lemmatize them through spacy, create python dictionary and check existance by key
 
 #todo show hidden words functionality [6]
