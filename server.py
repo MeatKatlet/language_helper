@@ -226,12 +226,9 @@ services_dispatcher = Services_dispatcher(volume_monitor)
 
 
 def main():
-    # TODO in extension words and phrases are formed in cnunks - this need to take into account
-    #
-    # check if vocabulary server is running
-    # l = subprocess.getstatusoutput("ps aux |grep 'jdictd.jar'|wc -l")
-
-    # if l[1] == '3':
+    print("###############################")
+    print("# SPEECH TO TEXT IS RUNNING...#")
+    print("###############################")
     #https://stackoverflow.com/questions/54101923/1006-connection-closed-abnormally-error-with-python-3-7-websockets
     start_server = websockets.serve(handler, "localhost", 6789, ping_interval=None)  #
     # todo what will be if timeout exceeds? it will reopen connection by itself?
@@ -239,19 +236,10 @@ def main():
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
 
-    # translation = translate()
-    # a = 1
-    # TODO test running of  translate() function
-    # TODO how to send words to this translator? - by phrases or by single word - how to separate them by phrases i dont know. its better bu one
-    # else:
-    # logging.error("vocab server doesnt running")
-    # print("vocab server doesnt running")
-
-
 if __name__ == '__main__':
     main()
 
     # TODO shutdown server when meeting closed - by button? start when Google Meet is open/check server running before meeting
     # check all servers running before meeting
     # start dictionary server/shutdown
-    #
+

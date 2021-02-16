@@ -803,7 +803,6 @@ test replic changing [2]
     test it if pause happened on replic with no translations yet - translate everything from 0 to end! - done
 
 
-
 #memory management [3]
     phrases_array
     already_sended
@@ -818,7 +817,16 @@ integrate list of stop words [5]
 
 #todo show hidden words functionality [6]
 
-#todo create desctop shortcut for python server start! - test all without pycharm
+create desctop shortcut for python server start! - test all without pycharm
+    how to demonyse python script?
+    how stop demon script by shortcut
+    how to create servise from python script
+    redirect all outputs from service to file -> std out/ std err etc
+    all outputs will be to terminal window
+
+    https://askubuntu.com/questions/342950/how-do-i-create-a-desktop-entry-to-launch-a-python-script
+    automatically mount drive on system start
+    make aliace link from /usr/local ??
 
 #todo - do not translate one word several times in one line
     #server part? - cash per each line? -

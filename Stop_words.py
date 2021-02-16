@@ -297,8 +297,12 @@ class Stop_words():
         'exit': None,
         'exist': None,
         'ever': None,
-
-
+        'visual': None,
+        'will': None,
+        'true': None,
+        'false': None,
+        'clinically': None,
+        'search': None
     }
 
 """
@@ -317,7 +321,3 @@ def main():
 if __name__ == '__main__':
     main()
 """
-
-
-
-
