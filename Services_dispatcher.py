@@ -66,6 +66,7 @@ class Services_dispatcher:
         while line := output.readline():
             if line == "Skype Speaker not found. Restart Skype or run test call from its settings!\n":
                 return line
+        self.volume_monitor.what_was_initialised = 'skype'
         return True
 
     def check_if_zoom_sink_belongs_to_virtual2(self, zoom_sink):
@@ -81,6 +82,7 @@ class Services_dispatcher:
             if line[:4]=="sink":
                 sink_name = line[line.find('<') + 1:line.rfind('>')]
             elif line == 'application.name = "ZOOM VoiceEngine"' and sink_name == 'Virtual2':
+                self.volume_monitor.what_was_initialised = 'zoom'
                 return True
         return "Set sound to Virtual2 in Zoom settings. If no Virtual2 then restart Zoom"
 

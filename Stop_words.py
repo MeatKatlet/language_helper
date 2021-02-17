@@ -302,7 +302,12 @@ class Stop_words():
         'true': None,
         'false': None,
         'clinically': None,
-        'search': None
+        'search': None,
+        'ensure': None,
+        'talk': None,
+        'love': None,
+        'early': None,
+        'here': None,
     }
 
 """
@@ -321,3 +326,7 @@ def main():
 if __name__ == '__main__':
     main()
 """
+
+
+
+

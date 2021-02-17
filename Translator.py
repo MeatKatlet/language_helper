@@ -96,6 +96,7 @@ class Translator:
         middle_phrase_begins = False
         for token in doc:
             translation = ""
+
             if token.idx == prev_phrase_l:
                 middle_phrase_begins = True
                 #prev_phrase_shift = prev_phrase_l
@@ -103,27 +104,27 @@ class Translator:
                 middle_phrase_begins = False
                 break
 
-
             if middle_phrase_begins == False:
                 continue
 
-            if token.lemma_ == "-PRON-":
+            lemma = token.lemma_.lower()
+            if lemma == "-PRON-":
                 continue
             elif token.pos_ == "PUNCT" and token.text == ".":
                 # . in the middle of prev phrase
                 #second_part_begins = True
                 #prev_phrase_shift = prev_phrase_l - token.idx
                 continue
-            elif token.pos_ in self.parser.poses and token.lemma_ not in self.stop_words:
+            elif token.pos_ in self.parser.poses and lemma not in self.stop_words:
 
-                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + lemma
                 return_code = 0
                 try:
                     res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
                     answer = res.decode("utf-8")
 
                     self.parser.recursion_protection = 0
-                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_, original_phrase=final_phrase, word_index=token.i, word_pos=token.idx)
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=lemma, original_phrase=final_phrase, word_index=token.i, word_pos=token.idx)
                     translation = self.parser.resolve_linkanswer(translation, token.pos_)
                     translation = self.parser.remove_after_comma(translation)
                     translation = self.parser.remove_obsolete_characters(translation)
@@ -180,6 +181,7 @@ class Translator:
         total_shift = 0
         for token in doc:
             translation = ""
+
             if token.idx == phrases_lengths[i]:
                 total_shift = phrases_lengths[i]
                 if i == 0 or i == -1:
@@ -189,23 +191,24 @@ class Translator:
             if middle_phrase_begins == False:
                 continue
 
-            if token.lemma_ == "-PRON-":
+            lemma = token.lemma_.lower()
+            if lemma == "-PRON-":
                 continue
             elif token.pos_ == "PUNCT" and token.text == ".":
                 # . in the middle of prev phrase
                 # second_part_begins = True
                 # prev_phrase_shift = prev_phrase_l - token.idx
                 continue
-            elif token.pos_ in self.parser.poses and token.lemma_ not in self.stop_words:
+            elif token.pos_ in self.parser.poses and lemma not in self.stop_words:
 
-                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + token.lemma_
+                cmd = "java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.client.JDict -h localhost -p 2628 -d mueller_base -m " + lemma
                 return_code = 0
                 try:
                     res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
                     answer = res.decode("utf-8")
 
                     self.parser.recursion_protection = 0
-                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=token.lemma_,
+                    translation = self.parser.parse_answer(answer, spacy_pos=token.pos_, origin_word=lemma,
                                                            original_phrase=final_text, word_index=token.i,
                                                            word_pos=token.idx)
                     translation = self.parser.resolve_linkanswer(translation, token.pos_)

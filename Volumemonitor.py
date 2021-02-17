@@ -5,6 +5,7 @@ class Volumemonitor():
         self.skype_sink_id = self.get_skype_sink_id()
         self.zoom_sink_id = self.get_zoom_sink_id()
         #self.one = False
+        self.what_was_initialised = "null"
 
     def get_skype_sink_id(self):
         cmd = "pactl list short clients | grep 'skypeforlinux' | python3 /home/kirill/Desktop/pulseaudio/iterate-stdin.py 1"
@@ -24,6 +25,14 @@ class Volumemonitor():
         if self.skype_sink_id != 'null':
             return self.get_skype_sink_id()
         elif self.zoom_sink_id != 'null':
+            return self.get_zoom_sink_id()
+        else:
+            return False
+
+    def refind_sink_again(self):
+        if self.what_was_initialised == 'skype':
+            return self.get_skype_sink_id()
+        elif self.what_was_initialised == 'zoom':
             return self.get_zoom_sink_id()
         else:
             return False

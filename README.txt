@@ -828,6 +828,15 @@ create desctop shortcut for python server start! - test all without pycharm
     automatically mount drive on system start
     make aliace link from /usr/local ??
 
+ Zoom: if you guest - then you can run 'try again only when meeting will start, if host - 1) test call in audio setting,2)start 'try again' 3)then start meeting'"
+
+
+1) SERVER
+2) CHROME - SRART MEETING (init virtual 2, otherwise if start zoom before meet your need to restart zoom to see virtual 2 in settings)
+3) IT WILL PROMPT TO START ZOOM - (WRITE THAT FOR ZOOM YOU NEED TO CHECK VIRTUAL2 AND TEST AUDIO SETTING)
+4) START ZOOM AND SET virtual2 in settings
+5) run test sound in zoom settings
+--- then everything will be work fine - detecting of interlocutor and redifining of broken sinks(regaedless of who is host)
 #todo - do not translate one word several times in one line
     #server part? - cash per each line? -
     #client - during construction of translation span - check repeats in other spans in that line(before that?) or keep in memory array of already inserted words and check in every time

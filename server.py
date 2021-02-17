@@ -192,6 +192,7 @@ async def producer():
     else:
         # TODO error handler or skype/zoom was opened?(but in bash script i already have this check) repeat sink finding again?
         a = 1
+        return False
 
 
 async def producer_handler(websocket, path):
@@ -204,6 +205,7 @@ async def producer_handler(websocket, path):
                 message = await producer()
                 await websocket.send(producer_event(message))
             else:
+                volume_monitor.refind_sink_again()
                 await asyncio.sleep(1)
     # send() raises a ConnectionClosed exception when the client disconnects, which breaks out of the while True loop.
 
