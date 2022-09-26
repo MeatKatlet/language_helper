@@ -1,4 +1,4 @@
-## Python server for handling requests from Google chrome extension for automatically show subtitles of foreing language speach and their translation in live mode during call. (also possible for videos)
+## Python server for handling requests from Google chrome extension for automatically show subtitles of foreing language speach and their translation in live mode during Zoom/Skype call. (also possible for videos)
 
 This system intended to work in my 2-monitors Ubuntu system.
 
