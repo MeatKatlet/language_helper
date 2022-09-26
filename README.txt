@@ -1,3 +1,13 @@
+#Python server for handling requests from Google chrome extension for automatically show subtitles of foreing language speach and their translation in live mode during call. (also possible for videos)
+
+This system intended to work in my 2-monitors Ubuntu system.
+
+Full speach(from begin of call to current moment of speach) subtitles and their translation are showing in separate convenient UI browser window with 2 autoscrolling modes function (on first monitor) for any video call via Zoom, Skype(on second monitor).
+
+Speach to text recognition is done via parsing of Google Meet subtitles function, whitch works perfectly.  
+
+
+==================Technical log===== Sorry, I guess this is usefull curently only for me ;)===================
 cd /media/kirill/System/dictserver
 
 java -cp /media/kirill/System/dictserver/jdictd.jar org.dict.server.JDictd /media/kirill/System/dictserver/Mueller/mueller.ini
